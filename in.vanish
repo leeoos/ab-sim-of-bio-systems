@@ -1,0 +1,126 @@
+# remove previous dump file
+shell rm dump.vanish
+shell rm dump.foo 
+
+# SET UP
+
+if "${control} > 5" then "variable duration internal ${time_value}" else "variable duration internal 1500"
+
+# sym measure units and atoms style
+units       real
+atom_style  sphere 
+
+# box dimension, boudaries and structure
+dimension   3  
+boundary    f f f 
+lattice     fcc 3.52
+
+# box main region
+region          box block 0 10 0 10 0 10
+create_box      3 box
+
+# create simulation walls
+fix xwalls all wall/reflect xlo EDGE xhi EDGE
+fix ywalls all wall/reflect ylo EDGE yhi EDGE
+fix zwalls all wall/reflect zlo EDGE zhi EDGE
+
+# creation of 2 atoms type 
+# each type will be created in a random spot  
+# inside the assigned region
+create_atoms    1 random 50 6478 box
+create_atoms    2 random 50 7583 box
+create_atoms    3 random 0 4889 box
+ 
+# atoms mass
+#mass 1 10.948
+#mass 2 10.467
+
+# force fields style and coefficient
+pair_style lj/cut 10
+pair_coeff	* * 1.0 1.0 2.5
+
+# define region's groups
+group   g1 type 1
+group   g2 type 2
+group   g3 empty
+
+# thermodynamic behaviour
+thermo_modify lost ignore flush yes # allowing atoms lost
+comm_modify vel yes 
+thermo 100
+
+# set time steps
+timestep 0.01 
+
+# set velocity for all atoms
+velocity all create 3000.0 4928459 rot yes dist gaussian
+
+# Perform plain time integration 
+# to update position and velocity  
+fix 1 all nve 
+
+#fix 5 all bond/create 10 1 2 0.8 1
+
+variable name string all
+
+compute 1 all contact/atom
+# create a dump file
+dump dump-1 all custom 100 dump.vanish id x y z type 
+dump dump-2 ${name} custom 100 dump.foo id x y z type c_1
+uncompute 1
+
+# LOOP
+label loop
+variable step loop ${duration} # performs 1000 runs
+
+# collision detection
+compute 1 all contact/atom
+compute 2 all reduce max c_1
+compute 3 all reduce sum c_1
+thermo_style    custom step temp pe c_2
+thermo_style    custom step temp pe c_3
+run 0
+
+# contact : boolean = true if atom I make contact bwith atom J
+variable    contact atom "c_1 > 0"
+
+# counter : int = N number of contact happened in this step
+variable    counter equal c_3
+variable    newatoms equal c_3/2
+
+# assign to g3 all atoms that as contact true
+group       g3 variable contact
+
+thermo_modify lost ignore flush yes # allowing atoms lost
+
+# stop condition 
+#fix 7 all halt 1 v_cnum > 0 error continue
+
+variable name delete
+variable name string g3
+
+if "${counter} > 1" then &
+    "fix 2 all deposit ${newatoms} 3 1 5748 region box near 2.0" 
+
+# append new values on dump file
+dump_modify dump-1 append yes
+dump_modify dump-2 append yes
+
+# set run steps
+run 1
+
+# unset compute ID to reuse them in the next iteration
+uncompute 1
+uncompute 2
+uncompute 3
+
+variable counter delete 
+
+# delate atoms in g3
+delete_atoms group g3
+
+next step
+jump SELF loop
+# END OF LOOP
+
+print "ALL DONE"
