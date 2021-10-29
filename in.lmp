@@ -1,6 +1,7 @@
 # remove previous dump file
 shell rm dump.main.output
 shell rm dump.foo 
+shell rm dump.bar
 
 # variable set up
 variable rnseed index 10
@@ -39,12 +40,13 @@ pair_style lj/cut 10
 pair_coeff	* * 1.0 1.0 2.5
 
 # define region's groups
-group g1 type 1
+group g1 type 1 
 group g2 type 2
+group agents  union g1 g2
 group g3 empty
+group in-box empty
 
 # thermodynamic behaviour
-thermo_modify lost ignore flush yes # allowing atoms lost
 comm_modify vel yes 
 thermo 100
 
@@ -52,19 +54,18 @@ thermo 100
 timestep 0.6 
 
 # set velocity for all atoms
-velocity all create 300.0 4928459 rot yes dist gaussian loop all
+velocity all create 3000.0 4928459 rot yes dist gaussian loop all
 
 # Perform plain time integration 
 # to update position and velocity  
 fix 2 all langevin 300.0 400.0 100.0 48279 scale 3 1.5
 fix 1 all nve 
 
-variable name string all
-
 compute 1 all contact/atom
 # create a dump file
 dump dump-1 all custom 10 dump.main.output id x y z type 
-#dump dump-2 ${name} custom 100 dump.foo id x y z type c_1
+dump dump-2 g3 custom 100 dump.foo id type c_1
+dump dump-3 agents custom 100 dump.bar id type c_1
 uncompute 1
 
 # LOOP
@@ -72,11 +73,12 @@ label loop
 variable step loop ${duration} # performs 1000 runs
 
 # collision detection
-compute 1 all contact/atom
-compute 2 all reduce max c_1
-compute 3 all reduce sum c_1
+compute 1 agents contact/atom
+compute 2 agents reduce max c_1
+compute 3 agents reduce sum c_1
 thermo_style    custom step temp pe c_2
 thermo_style    custom step temp pe c_3
+thermo_modify lost ignore flush yes # allowing atoms lost
 run 0
 
 # contact : boolean = true if atom I make contact bwith atom J
@@ -96,12 +98,7 @@ elif '${probability} > 70 && ${probability} <= 100' &
     'variable    newatoms equal ceil(c_3/2)'
 
 # assign to g3 all atoms that as contact true
-group g3 variable contact
-
-thermo_modify lost ignore flush yes # allowing atoms lost
-
-# stop condition 
-#fix 7 all halt 1 v_cnum > 0 error continue
+group in-box variable contact
 
 variable name delete
 variable name string g3
@@ -109,9 +106,13 @@ variable name string g3
 if "${counter} > 1" then &
     "fix deposit all deposit ${newatoms} 3 1 5748 region box near 2.0" 
 
+group g3 type 3
+group garbage subtract in-box g3
+
 # append new values on dump file
 dump_modify dump-1 append yes
-#dump_modify dump-2 append yes
+dump_modify dump-2 append yes
+dump_modify dump-3 append yes
 
 # set run steps
 run 1
@@ -124,7 +125,7 @@ uncompute 3
 variable counter delete 
 
 # delate atoms in g3
-delete_atoms group g3
+delete_atoms group garbage
 
 next step
 jump SELF loop
