@@ -1,13 +1,16 @@
 # remove previous dump file
-shell rm dump.vanish
+shell rm dump.main.output
 shell rm dump.foo 
 
-# SET UP
+# variable set up
+variable rnseed index 10
+variable probability equal ceil(random(1,100,${rnseed}))
 
-if "${control} > 5" then "variable duration internal ${time_value}" else "variable duration internal 1500"
+variable time_value index 1500
+variable duration equal ${time_value}
 
 # sym measure units and atoms style
-units       real
+units       si
 atom_style  sphere 
 
 # box dimension, boudaries and structure
@@ -16,8 +19,8 @@ boundary    f f f
 lattice     fcc 3.52
 
 # box main region
-region          box block 0 10 0 10 0 10
-create_box      3 box
+region      box block 0 10 0 10 0 10
+create_box  3 box
 
 # create simulation walls
 fix xwalls all wall/reflect xlo EDGE xhi EDGE
@@ -27,22 +30,18 @@ fix zwalls all wall/reflect zlo EDGE zhi EDGE
 # creation of 2 atoms type 
 # each type will be created in a random spot  
 # inside the assigned region
-create_atoms    1 random 50 6478 box
-create_atoms    2 random 50 7583 box
-create_atoms    3 random 0 4889 box
- 
-# atoms mass
-#mass 1 10.948
-#mass 2 10.467
+create_atoms 1 random 50 6478 box
+create_atoms 2 random 50 7583 box
+create_atoms 3 random 0 4889 box
 
 # force fields style and coefficient
 pair_style lj/cut 10
 pair_coeff	* * 1.0 1.0 2.5
 
 # define region's groups
-group   g1 type 1
-group   g2 type 2
-group   g3 empty
+group g1 type 1
+group g2 type 2
+group g3 empty
 
 # thermodynamic behaviour
 thermo_modify lost ignore flush yes # allowing atoms lost
@@ -50,23 +49,22 @@ comm_modify vel yes
 thermo 100
 
 # set time steps
-timestep 0.01 
+timestep 0.6 
 
 # set velocity for all atoms
-velocity all create 3000.0 4928459 rot yes dist gaussian
+velocity all create 300.0 4928459 rot yes dist gaussian loop all
 
 # Perform plain time integration 
 # to update position and velocity  
+fix 2 all langevin 300.0 400.0 100.0 48279 scale 3 1.5
 fix 1 all nve 
-
-#fix 5 all bond/create 10 1 2 0.8 1
 
 variable name string all
 
 compute 1 all contact/atom
 # create a dump file
-dump dump-1 all custom 100 dump.vanish id x y z type 
-dump dump-2 ${name} custom 100 dump.foo id x y z type c_1
+dump dump-1 all custom 10 dump.main.output id x y z type 
+#dump dump-2 ${name} custom 100 dump.foo id x y z type c_1
 uncompute 1
 
 # LOOP
@@ -82,14 +80,23 @@ thermo_style    custom step temp pe c_3
 run 0
 
 # contact : boolean = true if atom I make contact bwith atom J
-variable    contact atom "c_1 > 0"
+variable contact atom "c_1 > 0"
 
 # counter : int = N number of contact happened in this step
-variable    counter equal c_3
-variable    newatoms equal c_3/2
+variable counter equal c_3
+
+# newatoms : int = N number of atoms to generate accordly to the given probability
+if '${probability} > 0 && ${probability} <= 25' then & 
+    'variable    newatoms equal ceil(c_3/16)' &
+elif '${probability} > 25 && ${probability} <= 50' & 
+    'variable    newatoms equal ceil(c_3/8)' &
+elif '${probability} > 50 && ${probability} <= 70' & 
+    'variable    newatoms equal ceil(c_3/4)' &
+elif '${probability} > 70 && ${probability} <= 100' &
+    'variable    newatoms equal ceil(c_3/2)'
 
 # assign to g3 all atoms that as contact true
-group       g3 variable contact
+group g3 variable contact
 
 thermo_modify lost ignore flush yes # allowing atoms lost
 
@@ -100,11 +107,11 @@ variable name delete
 variable name string g3
 
 if "${counter} > 1" then &
-    "fix 2 all deposit ${newatoms} 3 1 5748 region box near 2.0" 
+    "fix deposit all deposit ${newatoms} 3 1 5748 region box near 2.0" 
 
 # append new values on dump file
 dump_modify dump-1 append yes
-dump_modify dump-2 append yes
+#dump_modify dump-2 append yes
 
 # set run steps
 run 1
