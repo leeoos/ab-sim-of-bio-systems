@@ -1,0 +1,35 @@
+LAMMPS data file via write_data, version 29 Oct 2020, timestep = 100
+
+2 atoms
+2 atom types
+0 bonds
+1 bond types
+
+-10.0 10.0 xlo xhi
+-10.0 10.0 ylo yhi
+-10.0 10.0 zlo zhi
+
+Masses
+
+1 1
+2 1
+
+PairIJ Coeffs # zero
+
+1 1 5
+1 2 5
+2 2 5
+
+Bond Coeffs # harmonic/omp
+
+1 100 1.1
+
+Atoms # full
+
+1 1 1 0.0 -1.0 0.0 0.0 0 0 0
+2 2 2 0.0 1.0 0.0 0.0 0 0 0
+
+Velocities
+
+1 0.0 0.0 0.0
+2 0.0 0.0 0.0
