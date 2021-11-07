@@ -23,10 +23,6 @@ lattice     fcc 3.52
 region      box block 0 20 0 20 0 20
 create_box  3 box   bond/types 1 extra/bond/per/atom 1
 
-# bond style and coefficients
-bond_style harmonic 
-bond_coeff 1 500.0 1.2
-
 # create simulation walls
 fix xwalls all wall/reflect xlo EDGE xhi EDGE
 fix ywalls all wall/reflect ylo EDGE yhi EDGE
@@ -35,20 +31,22 @@ fix zwalls all wall/reflect zlo EDGE zhi EDGE
 # creation of 2 atoms type 
 # each type will be created in a random spot  
 # inside the assigned region
-#create_atoms 1 random 50 6478 box
-#create_atoms 2 random 50 7583 box
-#create_atoms 3 random 0 4889 box
-create_atoms    1 random 100 5783 box
-create_atoms    2 random 100 7483 box
+create_atoms 1 random 50 6478 box
+create_atoms 2 random 50 7583 box
+create_atoms 3 random 0 4889 box
 
 # atoms mass
 mass 1 10.948
 mass 2 10.467
 mass 3 10.578
 
+# bond style and coefficients
+bond_style  harmonic
+bond_coeff * 100 1.1
+
 # force fields style and coefficient
-pair_style lj/cut 10
-pair_coeff	* * 1.0 1.0 2.5
+pair_style zero 5.0
+pair_coeff * *
 
 # This command sets parameters that affect 
 # the building of pairwise neighbor lists
@@ -70,68 +68,55 @@ thermo 100
 timestep 1.0
 
 # set velocity for all atoms
-velocity all create 3000.0 4928459 rot yes dist gaussian loop all
+velocity all create 300.0 4928459 rot yes dist gaussian
 
 # Perform plain time integration 
 # to update position and velocity  
 fix 1 all nve
 fix 2 all langevin 300.0 400.0 100.0 48279 scale 3 1.5 
 
-#compute 1 all contact/atom
-# create a dump file
+# dump file
 dump dump-1 all custom 10 dump.output id x y z type mol
-#dump dump-2 g3 custom 100 dump.foo id type c_1
-#dump dump-3 agents custom 100 dump.bar id type c_1
-#uncompute 1
 
 # LOOP
 #label loop
 #variable step loop ${duration} # performs 1000 runs
 
 # fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values ...
-fix 3 all bond/create 10 1 2 1.0 1
+fix bonds all bond/create 10 1 2 1.0 1 prob 0.9 85784 iparam 3 3 jparam 3 3
 
 # collision detection
-#compute 1 agents contact/atom
-#compute 2 agents reduce max c_1
-#compute 3 agents reduce sum c_1
-#thermo_style    custom step temp pe c_2
-#thermo_style    custom step temp pe c_3
+compute 1 agents contact/atom
+compute 2 agents reduce max c_1
+compute 3 agents reduce sum c_1
+thermo_style custom step temp pe c_2
+thermo_style custom step temp pe c_3
 thermo_modify lost ignore flush yes # allowing atoms lost
-#run 0
+run 0
 
 # contact : boolean = true if atom I make contact bwith atom J
-#variable contact atom "c_1 > 0"
+variable contact atom "c_1 > 0"
 
 # counter : int = N number of contact happened in this step
-#variable counter equal c_3
+variable counter equal c_3
 
-# newatoms : int = N number of atoms to generate accordly to the given probability
-#if '${probability} > 0 && ${probability} <= 25' then & 
-#    'variable    newatoms equal ceil(c_3/16)' &
-#elif '${probability} > 25 && ${probability} <= 50' & 
-#    'variable    newatoms equal ceil(c_3/8)' &
-#elif '${probability} > 50 && ${probability} <= 70' & 
-#    'variable    newatoms equal ceil(c_3/4)' &
-#elif '${probability} > 70 && ${probability} <= 100' &
-#    'variable    newatoms equal ceil(c_3/2)'
+# newatoms : int = N number of atoms to generate 
+variable    newatoms equal ceil(c_3/2)
 
 # assign to in-box all atoms that as contact true
-#group in-box variable contact
+group in-box variable contact
 
 #variable name delete
 #variable name string g3
 
-#if "${counter} > 1" then &
-    #"fix deposit all deposit ${newatoms} 3 1 5748 region box near 2.0" 
+if "${counter} > 1" then &
+    "fix deposit all deposit ${newatoms} 3 1 5748 region box near 2.0" 
 
 #group g3 type 3
 #group garbage subtract in-box g3
 
 # append new values on dump file
-#dump_modify dump-ovito append yes
-#dump_modify dump-2 append yes
-#dump_modify dump-3 append yes
+#dump_modify dump-1 append yes
 
 # set run steps
 run ${duration}
