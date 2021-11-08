@@ -19,8 +19,6 @@ mass 1 10.948
 mass 2 10.467
 mass 3 10.578
 
-group garbage empty
-
 pair_style zero 5.0
 pair_coeff * *
 
@@ -38,11 +36,11 @@ fix 2 all langevin 1.0 1.0 10.0 904297
 
 compute 1 all property/atom nbonds
 compute 2 all reduce sum c_1            # change all to agents
-thermo_style custom step temp pe c_2
+thermo_style custom step temp pe c_2 
 run 0
 
 # hasbond : boolean = true if atom I has a bond
-variable hasbond atom "c_1 > 0"
+variable hasbond atom "c_1 > 0.0"
 
 # newatoms : int = N number of atoms to generate 
 variable newatoms equal ceil(c_2)
@@ -52,9 +50,13 @@ variable newatoms equal ceil(c_2)
 
 group garbage variable hasbond
 
-dump dump-1 all custom 100 dump.bar id x y z type c_1
+dump dump-1 all custom 100 dump.bar id x y z type v_hasbond c_1
 
-dump dump-2 garbage custom 100 dump.foo id
+variable        eatom atom "c_1 >= 0.1"
+group           hienergy variable eatom
+dump dump-2 hienergy custom 100 dump.foo id
+
+delete_atoms group garbage
 
 run 50000
 

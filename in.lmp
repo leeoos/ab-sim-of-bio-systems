@@ -11,7 +11,7 @@ variable time_value index 1500
 variable duration equal ${time_value}
 
 # sym measure units and atoms style
-units       si
+units       real
 atom_style  hybrid full sphere
 
 # box dimension, boudaries and structure
@@ -20,8 +20,8 @@ boundary    f f f
 lattice     fcc 3.52
 
 # box main region
-region      box block 0 20 0 20 0 20
-create_box  3 box   bond/types 1 extra/bond/per/atom 1
+region      box block 0 10 0 10 0 10
+create_box  3 box   bond/types 1 extra/bond/per/atom 10
 
 # create simulation walls
 fix xwalls all wall/reflect xlo EDGE xhi EDGE
@@ -31,8 +31,8 @@ fix zwalls all wall/reflect zlo EDGE zhi EDGE
 # creation of 2 atoms type 
 # each type will be created in a random spot  
 # inside the assigned region
-create_atoms 1 random 50 6478 box
-create_atoms 2 random 50 7583 box
+create_atoms 1 random 100 6478 box
+create_atoms 2 random 100 7583 box
 create_atoms 3 random 0 4889 box
 
 # atoms mass
@@ -83,7 +83,7 @@ dump dump-1 all custom 10 dump.output id x y z type mol
 #variable step loop ${duration} # performs 1000 runs
 
 # fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values ...
-fix bonds all bond/create 10 1 2 1.0 1 prob 0.9 85784 iparam 3 3 jparam 3 3
+#fix bonds all bond/create 10 1 2 1.0 1 prob 0.9 85784 iparam 3 3 jparam 3 3
 
 # collision detection
 compute 1 agents contact/atom
@@ -110,7 +110,9 @@ group in-box variable contact
 #variable name string g3
 
 if "${counter} > 1" then &
-    "fix deposit all deposit ${newatoms} 3 1 5748 region box near 2.0" 
+    "fix deposit all deposit ${newatoms} 3 1 5748 region box near 2.0"
+
+dump dump-4 in-box custom 100 dump.test id  
 
 #group g3 type 3
 #group garbage subtract in-box g3

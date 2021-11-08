@@ -30,9 +30,6 @@ mass 1 10.948
 mass 2 10.467
 mass 3 10.578
 
-group garbage empty
-0 atoms in group garbage
-
 pair_style zero 5.0
 pair_coeff * *
 
@@ -73,9 +70,9 @@ Neighbor list info ...
 Per MPI rank memory allocation (min/avg/max) = 20.73 | 20.73 | 20.73 Mbytes
 Step Temp PotEng c_2 
        0          300            0            0 
-Loop time of 8.24e-07 on 16 procs for 0 steps with 10 atoms
+Loop time of 5.59e-07 on 16 procs for 0 steps with 10 atoms
 
-0.0% CPU use with 1 MPI tasks x 16 OpenMP threads
+178.9% CPU use with 1 MPI tasks x 16 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -86,7 +83,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 8.24e-07   |            |       |100.00
+Other   |            | 5.59e-07   |            |       |100.00
 
 Nlocal:        10.0000 ave          10 max          10 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -102,7 +99,7 @@ Neighbor list builds = 0
 Dangerous builds = 0
 
 # hasbond : boolean = true if atom I has a bond
-variable hasbond atom "c_1 > 0"
+variable hasbond atom "c_1 > 0.0"
 
 # newatoms : int = N number of atoms to generate
 variable newatoms equal ceil(c_2)
@@ -113,13 +110,20 @@ variable newatoms equal ceil(c_2)
 group garbage variable hasbond
 0 atoms in group garbage
 
-dump dump-1 all custom 100 dump.bar id x y z type c_1
+dump dump-1 all custom 100 dump.bar id x y z type v_hasbond c_1
 
-dump dump-2 garbage custom 100 dump.foo id
+variable        eatom atom "c_1 >= 0.1"
+group           hienergy variable eatom
+0 atoms in group hienergy
+dump dump-2 hienergy custom 100 dump.foo id
+
+delete_atoms group garbage
+WARNING: Ignoring 'compress yes' for molecular system (src/delete_atoms.cpp:125)
+Deleted 0 atoms, new total = 10
 
 run 50000
 Last active /omp style is bond_style harmonic/omp
-Per MPI rank memory allocation (min/avg/max) = 22.36 | 22.36 | 22.36 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 22.48 | 22.48 | 22.48 Mbytes
 Step Temp PotEng c_2 
        0          300            0            0 
      100    273.36315            0            0 
@@ -622,21 +626,21 @@ Step Temp PotEng c_2
    49800   0.90593205   0.35900923          0.4 
    49900   0.85091453    0.3502777          0.4 
    50000    1.0559054   0.41059041          0.4 
-Loop time of 7.57405 on 16 procs for 50000 steps with 10 atoms
+Loop time of 7.72468 on 16 procs for 50000 steps with 10 atoms
 
-Performance: 2851841.083 tau/day, 6601.484 timesteps/s
-375.4% CPU use with 1 MPI tasks x 16 OpenMP threads
+Performance: 2796231.456 tau/day, 6472.758 timesteps/s
+364.2% CPU use with 1 MPI tasks x 16 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0054117  | 0.0054117  | 0.0054117  |   0.0 |  0.07
-Bond    | 2.5247     | 2.5247     | 2.5247     |   0.0 | 33.33
-Neigh   | 0.059998   | 0.059998   | 0.059998   |   0.0 |  0.79
-Comm    | 0.01016    | 0.01016    | 0.01016    |   0.0 |  0.13
-Output  | 0.046594   | 0.046594   | 0.046594   |   0.0 |  0.62
-Modify  | 4.8501     | 4.8501     | 4.8501     |   0.0 | 64.04
-Other   |            | 0.07711    |            |       |  1.02
+Pair    | 0.0057067  | 0.0057067  | 0.0057067  |   0.0 |  0.07
+Bond    | 2.5284     | 2.5284     | 2.5284     |   0.0 | 32.73
+Neigh   | 0.073662   | 0.073662   | 0.073662   |   0.0 |  0.95
+Comm    | 0.01092    | 0.01092    | 0.01092    |   0.0 |  0.14
+Output  | 0.047684   | 0.047684   | 0.047684   |   0.0 |  0.62
+Modify  | 4.9783     | 4.9783     | 4.9783     |   0.0 | 64.45
+Other   |            | 0.08008    |            |       |  1.04
 
 Nlocal:        10.0000 ave          10 max          10 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
