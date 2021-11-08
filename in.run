@@ -36,7 +36,7 @@ fix 2 all langevin 1.0 1.0 10.0 904297
 
 compute 1 all property/atom nbonds
 compute 2 all reduce sum c_1            # change all to agents
-thermo_style custom step temp pe c_2 
+thermo_style custom step temp pe c_2
 run 0
 
 # hasbond : boolean = true if atom I has a bond
@@ -48,13 +48,12 @@ variable newatoms equal ceil(c_2)
 # fix ID group-ID deposit N type M seed keyword values
 #fix depositatoms all deposit ${newatoms} 3 10 5748 region box near 2.0
 
-group garbage variable hasbond
+group garbage dynamic all every 1 var hasbond
+dump dump-2 garbage custom 100 dump.foo id
 
-dump dump-1 all custom 100 dump.bar id x y z type v_hasbond c_1
+thermo_style custom step temp pe v_newatoms 
 
-variable        eatom atom "c_1 >= 0.1"
-group           hienergy variable eatom
-dump dump-2 hienergy custom 100 dump.foo id
+dump dump-1 all custom 100 dump.bar id x y z type 
 
 delete_atoms group garbage
 
