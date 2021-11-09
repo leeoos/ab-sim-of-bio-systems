@@ -101,18 +101,23 @@ run 0
 # hasbond : boolean = true if atom I has a bond with atom J
 variable hasbond atom "c_1 > 0.0"
 
-# newatoms : int = N number of atoms to generate 
-variable newatoms equal ceil(c_2) 
+# bondcounter : int = N total number of bonds in the sim
+variable bondcounter equal ceil(c_2) 
+
+# print themo info every timestep 
+thermo_style custom step temp pe v_bondcounter
 
 # dumps atoms information 
 dump 1 all custom 10 dump.out id x y z type 
-#dump dump-2 garbage custom 100 dump.foo id #check
 
 #       --- LOOP---
 
 label loop
 variable step loop ${duration}
 
+variable newatoms equal ${bondcounter}/2
+if "${bondcounter} > 0" then &
+   "fix depositatoms all deposit ${newatoms} 3 1 5748 region box near 2.0" 
 # fix ID group-ID deposit N type M seed keyword values
 #fix depositatoms all deposit 1 3 1 5748 region box near 0.1
 
@@ -123,7 +128,7 @@ group garbage dynamic all every 1 var hasbond
 dump_modify 1 append yes
 
 # perform n steps in loop
-run 1000
+run 5000
 
 # delate all atoms in garbage
 delete_atoms group garbage bond yes mol yes
@@ -135,6 +140,7 @@ jump SELF loop
 # end of loop
 label break
 
+print "duration: ${duration}"
 print "ALL DONE"
 
 
