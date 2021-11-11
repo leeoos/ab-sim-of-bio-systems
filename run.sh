@@ -64,10 +64,23 @@ env OMP_NUM_THREADS=16 lmp -sf omp -in $1 -var time_value $time_value -var rnsee
 # to be on the safe side
 sleep 1
 
+# create a output directory if not exist
+mkdir -p Output
+
+# remove previous dump file whit same name to avoid errors
+rm -r Output/$dump 2> /dev/null
+rm Output/dump.* 2> /dev/null
+rm Output/log.* 2> /dev/null
+
+# move the output files to the correct directory
+mv $dump Output/    2> /dev/null
+mv dump.* Output/   2> /dev/null
+mv log.* Output/    2> /dev/null
+ 
 # run ovito on the dump file
 if $ovito 
 then
-    setsid ovito $dump
+    setsid ovito Output/$dump
 fi
 
 exit 0
