@@ -5,12 +5,12 @@ echo "Type: ${0: -6} -h for help" 1>&2; exit 1; }
 
 # inizialise variables
 ovito=false
-set_time=false
 time_value=1500
+num_atoms=5
 rand=10
 help=false
 
-while getopts ":o:t:r:h" opt; do
+while getopts ":o:t:r:a:h" opt; do
     case "${opt}" in
     
         o)  ovito=true
@@ -18,11 +18,13 @@ while getopts ":o:t:r:h" opt; do
             [[ $dump == *"dump."* ]] || usage "Error: dump file needed"
             ;;
 
-        t)  set_time=true
-            time_value=${OPTARG}
+        t)  time_value=${OPTARG}
             ;;
 
         r)  rand=${OPTARG}
+            ;;
+
+        a)  num_atoms=${OPTARG}
             ;;
 
         h)  help=true
@@ -57,7 +59,7 @@ then
 fi
 
 # run lammps input script with apropriate symulation time and random seed
-env OMP_NUM_THREADS=16 lmp -sf omp -in $1 -var time_value $time_value -var rnseed $rand
+env OMP_NUM_THREADS=16 lmp -sf omp -in $1 -var time_value $time_value -var rnseed $rand -var num_atoms $num_atoms
 
 # to be on the safe side
 sleep 1
