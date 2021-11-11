@@ -39,6 +39,9 @@ while getopts ":o:t:a:rh" opt; do
             ;;
     esac
 done
+# the variable OPTIND holds the number of options parsed by the last call to getopts. 
+# it is common practice to call the shift command at the end of your processing loop 
+# to remove options that have already been handled from $@.
 shift $((OPTIND-1))
 
 # display helping manual 
@@ -85,4 +88,3 @@ then
 fi
 
 exit 0
-
