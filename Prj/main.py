@@ -117,7 +117,7 @@ with open('Input/in.lmp', 'w') as f_in:
         # to update position and velocity
         # and simulate Brownioan motion
         fix 1 all nve\n
-        fix 2 all langevin 300.0 300.0 10.0 904297
+        fix 2 all langevin 300.0 300.0 10.0 904297  
         
         # compute if atoms has a bonds
         # and total number of bonds btw all atoms
