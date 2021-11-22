@@ -149,4 +149,3 @@ def create_model():
 
 if __name__ == '__main__':
     print(create_model())
-
