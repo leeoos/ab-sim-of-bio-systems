@@ -15,7 +15,7 @@ def main (args):
     document = readSBML(filename)
 
     if document.getNumErrors() > 0:
-        printLine("Encountered the following SBML errors:" )
+        print("Encountered the following SBML errors:" )
         document.printErrors()
         return 1
 

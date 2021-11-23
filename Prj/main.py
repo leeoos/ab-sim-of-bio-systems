@@ -2,10 +2,10 @@ from tkinter import Tk
 from tkinter.filedialog import askopenfilename
 
 # we don't want a full GUI, so keep the root window from appearing
-#Tk().withdraw() 
+Tk().withdraw() 
 # show an "Open" dialog box and return the path to the selected file
-#filename = askopenfilename()
-#print(filename)
+filename = askopenfilename()
+print(filename)
 
 #with open(filename, 'r') as xml_f:
 
@@ -13,6 +13,7 @@ from tkinter.filedialog import askopenfilename
 import os
 import os.path
 
+'''
 os.system('mkdir -p Input')
 
 with open('Input/in.lmp', 'w') as f_in:
@@ -188,4 +189,4 @@ with open('Input/in.lmp', 'w') as f_in:
 
 os.system('./run.sh -o dump.out Input/in.lmp')
 
-
+'''
