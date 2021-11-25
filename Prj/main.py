@@ -35,6 +35,7 @@ def read_sbml():
     print("\n"
                             + "File: " + short_filename
                             + " (Level " + str(level) + ", version " + str(version) + ")" )
+    time.sleep(1)
 
     model = document.getModel()
 
@@ -46,78 +47,6 @@ def read_sbml():
 
 def make_lmp():
     
-<<<<<<< HEAD
-        # set time steps 
-        timestep 0.01   # seconds
-        
-        # This command sets parameters that affect
-        # the building of pairwise neighbor lists
-        neighbor 0.001 bin
-        neigh_modify every 10 delay 100
-        
-        # print thermodinamic inf every N timesteps
-        thermo 100
-        
-        # fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values
-        # this fix will attempt to create new bond btw atoms of 
-        # type 1 and 2 every Nevery timestep
-        fix bonds all bond/create 10 1 2 1.0 1 prob 0.5 85784
-        
-        # set velocity for all atoms
-        velocity all create 300.0 4928459 rot yes dist gaussian 
-        
-        # perform plain time integration 
-        # to update position and velocity
-        # and simulate Brownioan motion
-        fix 1 all nve\n
-        fix 2 all langevin 300.0 300.0 10.0 904297  
-        
-        # compute if atoms has a bonds
-        # and total number of bonds btw all atoms
-        compute 1 agents property/atom nbonds
-        compute 2 agents reduce sum c_1            
-        thermo_style custom step temp pe c_2
-        run 0
-        # this lines are necessary to insure that the “hasbond” and "newatoms" 
-        # variables are current when the group command invokes it.
-        
-        # hasbond : boolean = true if atom I has a bond with atom J
-        variable hasbond atom "c_1 > 0.0"
-        
-        # bondcounter : int = N total number of bonds in the sim
-        variable bondcounter equal ceil(c_2) 
-        
-        # print themo info every timestep 
-        thermo_style custom step temp pe v_bondcounter
-        
-        # dumps atoms information 
-        dump 1 all custom 10 dump.out id x y z type 
-        
-        """
-    )
-    f_in.write(
-        """
-        #       --- LOOP---
-        
-        label loop\n
-        variable step loop ${duration}   # loop length
-        
-        # create new atoms only if new bonds have been made 
-        # the num of new atoms is linked to the number of new bonds as follow:
-        variable newatoms equal floor(${bondcounter}/2)
-        if "${bondcounter} > 0" then &
-        "fix depositatoms all deposit ${newatoms} 3 1 5748 region box near 2.0" 
-        # fix ID group-ID deposit N type M seed keyword values
-        
-        # assing all atoms that have a bond to the garbage group
-        group garbage dynamic all every 1 var hasbond
-        
-        # append new values on dump file
-        dump_modify 1 append yes
-        
-        # perform n steps in loop
-        run 100
-=======
     os.system('mkdir -p LAMMPS')
 
     # rand seed starter
@@ -285,7 +214,6 @@ def make_lmp():
         
         "# perform n steps in loop",
         "run 100\n",
->>>>>>> python
     
         "# delate all atoms in garbage",
         "delete_atoms group garbage bond yes mol yes compress no\n",
