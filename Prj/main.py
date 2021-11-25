@@ -14,7 +14,9 @@ import os
 import os.path
 from libsbml import *
 
-def make_lmp():
+def read_sbml():
+
+    print("Reading SBML file...")
 
     filename = get_file()
     document = readSBML(filename)
@@ -37,6 +39,7 @@ def make_lmp():
     if model.isSetSBOTerm():
         print("      model sboTerm: " + model.getSBOTerm() )
 
+    ''' 
     print("functionDefinitions: " + str(model.getNumFunctionDefinitions()) )
     print("    unitDefinitions: " + str(model.getNumUnitDefinitions()) )
     print("   compartmentTypes: " + str(model.getNumCompartmentTypes()) )
@@ -50,15 +53,29 @@ def make_lmp():
     print("          reactions: " + str(model.getNumReactions()) )
     print("             events: " + str(model.getNumEvents()) )
     print("\n")
-
-    return 0
-
+    
     '''
+
+    return model
+
+def make_lmp():
+    
+    print("Creating lammps file as in.lmp in LAMMPS/ dir...")
     os.system('mkdir -p LAMMPS')
 
-    with open('Input/in.lmp', 'w') as f_in:
+    # rand seed starter
+    r_seed = 5783
+
+    model = read_sbml()
+
+    # info
+    species = model.getNumSpecies()
+
+    with open('LAMMPS/in.lmp', 'w') as f_in:
         f_in.write('        # Agent Based Simulation Of Biological Systems\n')
+    
         f_in.write(
+    
             """
             #       --- SET UP OF INPUT VARIABLES ---
 
@@ -76,6 +93,7 @@ def make_lmp():
 
             """
         )
+
         f_in.write(
             """
             #       --- SIMULATION BOX PROPERTIES ---
@@ -103,14 +121,21 @@ def make_lmp():
 
             """
         )
+
+        
         f_in.write(
             """
             #       --- ATOMS PROPRETIES AND FORCE FIELDS ---
             
-            # creation of atoms of 2 types in randoms spots
-            create_atoms    1 random ${atoms} 5783 box
-            create_atoms    2 random ${atoms} 7483 box
-            
+            # creation of atoms of types in randoms spots inside the box
+            """
+        )
+        for i in range(1, species+1):
+
+            f_in.write("create_atoms" + "    " + str(i) + " random ${atoms} " + str(r_seed+i) + " box\n")
+
+        f_in.write(
+            """  
             # atoms mass
             mass 1 10.948
             mass 2 10.467
@@ -227,8 +252,23 @@ def make_lmp():
         f_in.flush()
         os.fsync(f_in)
 
-    os.system('./run.sh -o dump.out LAMMPS/in.lmp')
+    #os.system('./run.sh -o dump.out LAMMPS/in.lmp')
 
-    '''
+def run_lmp():
+    str_in = '0'
+    while (str_in != '1' or str_in != '2'):
+        print("\n Action Menu:")
+        print("Press 1 to look at the lammps script")
+        print("Press 2 to run the script\n")
+        str_in = input("> ")
+        if (str_in == '1') : 
+            os.system('cat ./LAMMPS/in.lmp')
+            str_in = '0'
+        else :
+            os.system('./run.sh -o dump.out LAMMPS/in.lmp')
+            return 0
+
+
 if __name__ == '__main__':
     make_lmp()
+    run_lmp()
