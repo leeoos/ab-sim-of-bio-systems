@@ -3,6 +3,12 @@
 usage() { echo $1; echo ;echo "Usage: ${0: -6} [-o dump.output] [-t Time] [-a N] [-r ] in.lammps " 1>&2; 
 echo "Type: ${0: -6} -h for help" 1>&2; exit 1; }
 
+# remove previous dump file whit same name to avoid errors
+rm dump.* 2> /dev/null
+rm log.* 2> /dev/null
+rm Output/dump.* 2> /dev/null
+rm Output/log.* 2> /dev/null
+
 # inizialise variables
 ovito=false
 time_value=1500
@@ -71,10 +77,6 @@ sleep 1
 
 # create a output directory if not exist
 mkdir -p Output
-
-# remove previous dump file whit same name to avoid errors
-rm Output/dump.* 2> /dev/null
-rm Output/log.* 2> /dev/null
 
 # move the output files to the correct directory
 mv $dump Output/    2> /dev/null
