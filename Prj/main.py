@@ -5,22 +5,24 @@ from tkinter.filedialog import askopenfilename
 def get_file():
     Tk().withdraw() 
     filename = askopenfilename()
-    #print(filename)
     return filename
 
 
 #       -- Create LAMMPS input  --
 import os
 import os.path
+import time
 from libsbml import *
 
 def read_sbml():
 
-    print("Reading SBML file...")
-
+    print("\nSelect a SBLM Model")
     filename = get_file()
-    document = readSBML(filename)
 
+    print("\nReading SBML file...")
+    time.sleep(1)
+    document = readSBML(filename)
+    
     if document.getNumErrors() > 0:
         print("Encountered the following SBML errors:" )
         document.printErrors()
@@ -38,29 +40,12 @@ def read_sbml():
 
     if model.isSetSBOTerm():
         print("      model sboTerm: " + model.getSBOTerm() )
-
-    ''' 
-    print("functionDefinitions: " + str(model.getNumFunctionDefinitions()) )
-    print("    unitDefinitions: " + str(model.getNumUnitDefinitions()) )
-    print("   compartmentTypes: " + str(model.getNumCompartmentTypes()) )
-    print("        specieTypes: " + str(model.getNumSpeciesTypes()) )
-    print("       compartments: " + str(model.getNumCompartments()) )
-    print("            species: " + str(model.getNumSpecies()) )
-    print("         parameters: " + str(model.getNumParameters()) )
-    print(" initialAssignments: " + str(model.getNumInitialAssignments()) )
-    print("              rules: " + str(model.getNumRules()) )
-    print("        constraints: " + str(model.getNumConstraints()) )
-    print("          reactions: " + str(model.getNumReactions()) )
-    print("             events: " + str(model.getNumEvents()) )
-    print("\n")
-    
-    '''
+        time.sleep(1)
 
     return model
 
 def make_lmp():
     
-    print("Creating lammps file as in.lmp in LAMMPS/ dir...")
     os.system('mkdir -p LAMMPS')
 
     # rand seed starter
@@ -68,207 +53,239 @@ def make_lmp():
 
     model = read_sbml()
 
+    if model == 1:
+        os._exit(1)
+
+    print("\nCreating lammps file as in.lmp in LAMMPS/ dir...")
+    time.sleep(1)
+
     # info
     species = model.getNumSpecies()
 
-    with open('LAMMPS/in.lmp', 'w') as f_in:
-        f_in.write('        # Agent Based Simulation Of Biological Systems\n')
+    with open('LAMMPS/in.lmp', 'w') as f:
+        f.write('# Agent Based Simulation Of Biological Systems\n\n')
     
-        f_in.write(
+        # SET UP OF INPUT VARIABLES
+        set_up =[
+        "\n#       --- SET UP OF INPUT VARIABLES ---\n",
+
+        "# rnseed : int = seed for random numbers",
+        "variable rnseed index 10",
+        "variable probability equal random(0,1,${rnseed})\n",
+
+        "# duration : int = N number of steps for the current run",
+        "variable time_value index 50  #default value",
+        "variable duration equal ${time_value}\n",
+
+        "# atoms : int = N number of atoms of each type to generate ",
+        "variable num_atoms index 5",
+        "variable atoms equal ${num_atoms}\n"]
+
+        f.writelines(["%s\n" % item  for item in set_up])
     
-            """
-            #       --- SET UP OF INPUT VARIABLES ---
+        # SIMULATION BOX PROPERTIES
+        sim_box = [
+        "\n#       --- SIMULATION BOX PROPERTIES ---\n",
 
-            # rnseed : int = seed for random numbers
-            variable rnseed index 10
-            variable probability equal random(0,1,${rnseed})
+        "# sym measure units and atoms style",
+        "units       lj",
+        "atom_style  full \n",
 
-            # duration : int = N number of steps for the current run
-            variable time_value index 50  #default value
-            variable duration equal ${time_value}
+        "# box dimension, boudaries and structure",
+        "dimension   3  ",
+        "boundary    f f f ",
+        "lattice     fcc 3.52\n",
 
-            # atoms : int = N number of atoms of each type to generate 
-            variable num_atoms index 5
-            variable atoms equal ${num_atoms}
+        "# flag2 = on or off for bonded interactions",
+        "newton on off\n",
 
-            """
-        )
+        "# define simulation box",
+        "region      box block 0 30 0 30 0 30",
+        "create_box  3 box  bond/types 1 extra/bond/per/atom 10\n",
 
-        f_in.write(
-            """
-            #       --- SIMULATION BOX PROPERTIES ---
+        "# create simulation walls",
+        "fix xwalls all wall/reflect xlo EDGE xhi EDGE",
+        "fix ywalls all wall/reflect ylo EDGE yhi EDGE",
+        "fix zwalls all wall/reflect zlo EDGE zhi EDGE\n"]
 
-            # sym measure units and atoms style
-            units       lj
-            atom_style  full 
+        f.writelines(["%s\n" % item  for item in sim_box])
 
-            # box dimension, boudaries and structure
-            dimension   3  
-            boundary    f f f 
-            lattice     fcc 3.52
-
-            # flag2 = on or off for bonded interactions
-            newton on off
-
-            # define simulation box
-            region      box block 0 30 0 30 0 30
-            create_box  3 box  bond/types 1 extra/bond/per/atom 10
-
-            # create simulation walls
-            fix xwalls all wall/reflect xlo EDGE xhi EDGE
-            fix ywalls all wall/reflect ylo EDGE yhi EDGE
-            fix zwalls all wall/reflect zlo EDGE zhi EDGE
-
-            """
-        )
-
+        # AGENTS PROPRETIES AND FORCE FIELDS
+        f.write("\n#       --- AGENTS PROPRETIES AND FORCE FIELDS ---\n")
+        f.write("# creation of atoms of types in randoms spots inside the box\n")
         
-        f_in.write(
-            """
-            #       --- ATOMS PROPRETIES AND FORCE FIELDS ---
-            
-            # creation of atoms of types in randoms spots inside the box
-            """
-        )
         for i in range(1, species+1):
+            f.write("create_atoms" + "    " + str(i) + " random ${atoms} " + str(r_seed+i) + " box")
+            f.write("\n")
 
-            f_in.write("create_atoms" + "    " + str(i) + " random ${atoms} " + str(r_seed+i) + " box\n")
-
-        f_in.write(
-            """  
-            # atoms mass
-            mass 1 10.948
-            mass 2 10.467
-            mass 3 10.578   # new atoms generated by type 1-2 bond
-            
-            # assing atoms to cerian groups
-            group g1 type 1 
-            group g2 type 2
-            group agents  union g1 g2
-            
-            # force fields style and coefficient
-            pair_style zero 5.0
-            pair_coeff * *
-            
-            # bond style and coefficients
-            bond_style  harmonic
-            bond_coeff * 100 1.1
-            
-            """
-        )
-        f_in.write(
-            """
-            #       --- SIMULATION ---
+        ag_prop =[
+        "\n# atoms mass",
+        "mass 1 10.948",
+        "mass 2 10.467",
+        "mass 3 10.578   # new atoms generated by type 1-2 bond\n",
         
-            # set time steps 
-            timestep 0.01   # seconds
-            
-            # This command sets parameters that affect
-            # the building of pairwise neighbor lists
-            neighbor 0.001 bin
-            neigh_modify every 10 delay 100
-            
-            # print thermodinamic inf every N timesteps
-            thermo 100
-            
-            # fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values
-            # this fix will attempt to create new bond btw atoms of 
-            # type 1 and 2 every Nevery timestep
-            fix bonds all bond/create 10 1 2 1.0 1 prob 0.5 85784
-            
-            # set velocity for all atoms
-            velocity all create 300.0 4928459 rot yes dist gaussian 
-            
-            # perform plain time integration 
-            # to update position and velocity
-            # and simulate Brownioan motion
-            fix 1 all nve\n
-            fix 2 all langevin 300.0 300.0 10.0 904297
-            
-            # compute if atoms has a bonds
-            # and total number of bonds btw all atoms
-            compute 1 agents property/atom nbonds
-            compute 2 agents reduce sum c_1            
-            thermo_style custom step temp pe c_2
-            run 0
-            # this lines are necessary to insure that the “hasbond” and "newatoms" 
-            # variables are current when the group command invokes it.
-            
-            # hasbond : boolean = true if atom I has a bond with atom J
-            variable hasbond atom "c_1 > 0.0"
-            
-            # bondcounter : int = N total number of bonds in the sim
-            variable bondcounter equal ceil(c_2) 
-            
-            # print themo info every timestep 
-            thermo_style custom step temp pe v_bondcounter
-            
-            # dumps atoms information 
-            dump 1 all custom 10 dump.out id x y z type 
-            
-            """
-        )
-        f_in.write(
-            """
-            #       --- LOOP---
-            
-            label loop\n
-            variable step loop ${duration}   # loop length
-            
-            # create new atoms only if new bonds have been made 
-            # the num of new atoms is linked to the number of new bonds as follow:
-            variable newatoms equal floor(${bondcounter}/2)
-            if "${bondcounter} > 0" then &
-            "fix depositatoms all deposit ${newatoms} 3 1 5748 region box near 2.0" 
-            # fix ID group-ID deposit N type M seed keyword values
-            
-            # assing all atoms that have a bond to the garbage group
-            group garbage dynamic all every 1 var hasbond
-            
-            # append new values on dump file
-            dump_modify 1 append yes
-            
-            # perform n steps in loop
-            run 100
+        "# assing atoms to cerian groups",
+        "group g1 type 1 ",
+        "group g2 type 2",
+        "group agents  union g1 g2\n",
         
-            # delate all atoms in garbage
-            delete_atoms group garbage bond yes mol yes
-            
-            # jump to loop lable until step > 0 
-            next step
-            jump SELF loop
-            
-            # end of loop
-            label break
-            
-            # check on input variables
-            variable total_atoms equal ${num_atoms}*2
-            print ""
-            print "Starting Atoms: ${total_atoms}" 
-            print "Duration: ${duration}"
-            print "ALL DONE"
-            """
-        )
-        f_in.flush()
-        os.fsync(f_in)
+        "# force fields style and coefficient",
+        "pair_style zero 5.0",
+        "pair_coeff * *\n",
+        
+        "# bond style and coefficients",
+        "bond_style  harmonic",
+        "bond_coeff * 100 1.1\n"]
 
-    #os.system('./run.sh -o dump.out LAMMPS/in.lmp')
+        f.writelines(["%s\n" % item  for item in ag_prop])
+        
+        # SIMULATION 
+        sim = [
+        " \n#      --- SIMULATION ---\n",
 
-def run_lmp():
-    str_in = '0'
-    while (str_in != '1' or str_in != '2'):
-        print("\n Action Menu:")
-        print("Press 1 to look at the lammps script")
-        print("Press 2 to run the script\n")
-        str_in = input("> ")
+        "# set time steps ",
+        "timestep 0.01   # seconds\n",
+        
+        "# This command sets parameters that affect",
+        "# the building of pairwise neighbor lists",
+        "neighbor 0.001 bin",
+        "neigh_modify every 10 delay 100\n",
+        
+        "# print thermodinamic inf every N timesteps",
+        "thermo 100 \n",
+        
+        "# fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values",
+        "# this fix will attempt to create new bond btw atoms of ",
+        "# type 1 and 2 every Nevery timestep",
+        "fix bonds all bond/create 10 1 2 1.0 1 prob 0.5 85784 \n",
+        
+        "# set velocity for all atoms",
+        "velocity all create 300.0 4928459 rot yes dist gaussian \n",
+        
+        "# perform plain time integration ",
+        "# to update position and velocity",
+        "# and simulate Brownioan motion",
+        "fix 1 all nve",
+        "fix 2 all langevin 300.0 300.0 10.0 904297\n",
+        
+        "# compute if atoms has a bonds",
+        "# and total number of bonds btw all atoms",
+        "compute 1 agents property/atom nbonds",
+        "compute 2 agents reduce sum c_1 ",           
+        "thermo_style custom step temp pe c_2",
+        "run 0",
+        "# this lines are necessary to insure that the “hasbond” and 'newatoms' ",
+        "# variables are current when the group command invokes it.\n",
+        
+        "# hasbond : boolean = true if atom I has a bond with atom J",
+        "variable hasbond atom 'c_1 > 0.0'\n",
+        
+        "# bondcounter : int = N total number of bonds in the sim",
+        "variable bondcounter equal ceil(c_2) \n",
+        
+        "# print themo info every timestep ",
+        "thermo_style custom step temp pe v_bondcounter\n",
+        
+        "# dumps atoms information ",
+        "dump 1 all custom 10 dump.out id x y z type \n"]
+
+        f.writelines(["%s\n" % item  for item in sim])
+
+        # LOOP 
+        loop = [
+        "\n#       --- LOOP---\n",
+        
+        "label loop",
+        "variable step loop ${duration}   # loop length\n",
+        
+        "# create new atoms only if new bonds have been made", 
+        "# the num of new atoms is linked to the number of new bonds as follow:",
+        "variable newatoms equal floor(${bondcounter}/2)",
+        "if '${bondcounter} > 0' then &",
+        "'fix depositatoms all deposit ${newatoms} 3 1 5748 region box near 2.0' ",
+        "# fix ID group-ID deposit N type M seed keyword values\n",
+        
+        "# assing all atoms that have a bond to the garbage group",
+        "group garbage dynamic all every 1 var hasbond\n",
+        
+        "# append new values on dump file",
+        "dump_modify 1 append yes\n",
+        
+        "# perform n steps in loop",
+        "run 100\n",
+    
+        "# delate all atoms in garbage",
+        "delete_atoms group garbage bond yes mol yes compress no\n",
+        
+        "# jump to loop lable until step > 0 ",
+        "next step",
+        "jump SELF loop\n",
+        
+        "# end of loop",
+        "label break\n",
+        
+        "# check on input variables",
+        "variable total_atoms equal ${num_atoms}*2",
+        "print ''",
+        "print 'Starting Atoms: ${total_atoms}' ",
+        "print 'Duration: ${duration}'",
+        "print 'ALL DONE' \n"]
+
+        f.writelines(["%s\n" % item  for item in loop])
+
+        f.flush()
+        os.fsync(f)
+
+import keyboard
+
+def run_():
+
+    str_in = 'start'
+    while True:
+        os.system('clear')
+        if (str_in == 'start'):
+            print("\n   Welcome: \n")
+            print("Press 1 to generate a input script\n")
+            print("Type q to exit\n")
+            str_in = input("> ")
+            if (str_in == '1') : 
+                make_lmp()
+                str_in = '0'
+
+        if (str_in != '' and str_in != 'q'):
+            os.system('clear')
+            print("\n   Action Menu: \n")
+            print("Press 1 to look at the lammps script\n")
+            print("Press 2 to run the script\n")
+            print("Press 3 to restart\n")
+            
+            print("Type q to exit\n")
+
+        if (str_in != 'q'): str_in = input("> ")
+
+        
         if (str_in == '1') : 
-            os.system('cat ./LAMMPS/in.lmp')
+            os.system('less ./LAMMPS/in.lmp')
             str_in = '0'
-        else :
+
+        elif (str_in == '2') :
             os.system('./run.sh -o dump.out LAMMPS/in.lmp')
+            str_in = '0'
+
+        elif (str_in == '3'):
+            os.system('python3 main.py')
             return 0
+    
+        elif (str_in == 'q'):
+            print("\nexiting...\n")
+            time.sleep(1)
+            os.system('clear')
+            return 0
+        
+        elif (str_in == '') : None
+
+        else: print("Error\n")
 
 
 if __name__ == '__main__':
-    make_lmp()
-    run_lmp()
+    run_()
