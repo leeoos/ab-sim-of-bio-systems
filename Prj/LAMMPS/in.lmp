@@ -42,8 +42,8 @@ fix zwalls all wall/reflect zlo EDGE zhi EDGE
 
 #       --- AGENTS PROPRETIES AND FORCE FIELDS ---
 # creation of atoms of types in randoms spots inside the box
-create_atoms    1 random ${atoms} 5784 box
-create_atoms    2 random ${atoms} 5785 box
+create_atoms    1 random ${atoms} 5783 box
+create_atoms    2 random ${atoms} 5784 box
 
 # atoms mass
 mass 1 10.948

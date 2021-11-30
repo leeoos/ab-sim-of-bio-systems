@@ -1,4 +1,5 @@
-from tkinter import Tk     
+from io import SEEK_CUR
+from tkinter import Radiobutton, Tk     
 from tkinter.filedialog import askopenfilename
 
 #       -- Basic GUI --
@@ -14,6 +15,7 @@ import os.path
 import time
 from libsbml import *
 
+#       -- Read SBML file  --
 def read_sbml():
 
     print("\nSelect a SBLM Model")
@@ -22,22 +24,27 @@ def read_sbml():
     print("\nReading SBML file...")
     time.sleep(1)
     document = readSBML(filename)
-    
+
+    #       -- Checks for errors --
     if document.getNumErrors() > 0:
         print("Encountered the following SBML errors:" )
         document.printErrors()
         return 1
 
+    #       -- Get doc version --
     level = document.getLevel()
     version = document.getVersion()
     short_filename = filename[filename.rfind('/')+1:]
 
-    print("\n"
-                            + "File: " + short_filename
-                            + " (Level " + str(level) + ", version " + str(version) + ")" )
+    print("\n"  + "File: " + short_filename
+                + " (Level " + str(level) + ", version " + str(version) + ")" )
     time.sleep(1)
 
     model = document.getModel()
+
+    if model is None:
+        print("No model present." )
+        return 1
 
     if model.isSetSBOTerm():
         print("      model sboTerm: " + model.getSBOTerm() )
@@ -45,12 +52,11 @@ def read_sbml():
 
     return model
 
-def make_lmp():
+def make_lmp(**kwargs):
     
     os.system('mkdir -p LAMMPS')
 
-    # rand seed starter
-    r_seed = 5783
+    r_seed = kwargs.get('arg1', 5783)
 
     model = read_sbml()
 
@@ -61,7 +67,8 @@ def make_lmp():
     time.sleep(1)
 
     # info
-    species = model.getNumSpecies()
+    species = range(1, model.getNumSpecies()+1)
+    num_par = model.getNumParameters()
 
     with open('LAMMPS/in.lmp', 'w') as f:
         f.write('# Agent Based Simulation Of Biological Systems\n\n')
@@ -115,8 +122,9 @@ def make_lmp():
         f.write("\n#       --- AGENTS PROPRETIES AND FORCE FIELDS ---\n")
         f.write("# creation of atoms of types in randoms spots inside the box\n")
         
-        for i in range(1, species+1):
-            f.write("create_atoms" + "    " + str(i) + " random ${atoms} " + str(r_seed+i) + " box")
+        for i in species:
+            f.write("create_atoms" + "    " + str(i) + " random ${atoms} " + str(r_seed) + " box")
+            r_seed = r_seed + i
             f.write("\n")
 
         ag_prop =[
@@ -237,9 +245,11 @@ def make_lmp():
         f.flush()
         os.fsync(f)
 
-import keyboard
 
 def run_():
+
+    # default rand seed STARTER -> it will be incremented each time
+    r_seed = 5783
 
     str_in = 'start'
     while True:
@@ -249,8 +259,13 @@ def run_():
             print("Press 1 to generate a input script\n")
             print("Type q to exit\n")
             str_in = input("> ")
-            if (str_in == '1') : 
-                make_lmp()
+            if (str_in == '1') :
+                print("\nThe actual rand seed is: " + str(r_seed) + '\n')
+                print("Type a new number if you want to change the rand seed\n")
+                print("Press Enter to continue with the default\n")
+                n_seed = input("> ")
+                if (n_seed != '') : make_lmp(arg1=int(n_seed))
+                else : make_lmp()
                 str_in = '0'
 
         if (str_in != '' and str_in != 'q'):
