@@ -21,7 +21,7 @@
     </listOfSpecies>
 
     <listOfParameters>
-      <parameter id="k" value="1" units="per_second" constant="true"/>
+      <parameter id="k" value="1267" units="per_second" constant="true"/>
     </listOfParameters>
 
     <listOfReactions>
