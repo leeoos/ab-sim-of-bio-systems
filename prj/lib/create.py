@@ -52,10 +52,15 @@ def read_sbml():
 
     return model
 
+#       -- Create a LAMMPS input file --
 def make_lmp(**kwargs):
 
     r_seed = kwargs.get('r_seed', 5783)
-    in_path = kwargs.get('path', 'lammps/in.lmp')
+    in_file_path = kwargs.get('path', None)
+
+    if (in_file_path == None) : 
+        os.system('mkdir -p ./lammps/')
+        in_file_path = 'lammps/in.lmp'
 
     model = read_sbml()
 
@@ -70,7 +75,7 @@ def make_lmp(**kwargs):
     reactions = range(1, model.getNumReactions() + 1)
     num_par = model.getNumParameters()
 
-    with open(in_path, 'w') as f:
+    with open(in_file_path, 'w') as f:
         f.write('# Agent Based Simulation Of Biological Systems\n\n')
     
         # SET UP OF INPUT VARIABLES
