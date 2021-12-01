@@ -86,7 +86,7 @@ mv log.* output/    2> /dev/null
 # run ovito on the dump file
 if $ovito 
 then
-    setsid ovito Output/$dump
+    setsid ovito output/$dump
 fi
 
 exit 0

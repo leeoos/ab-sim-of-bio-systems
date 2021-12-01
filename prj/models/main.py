@@ -256,6 +256,11 @@ def make_lmp(**kwargs):
 
 import os
 import os.path
+import time
+import sys
+cwd = os.getcwd()
+sys.path.append(cwd+'/../lib/')
+from create import *
 
 def run_():
 
@@ -294,11 +299,11 @@ def run_():
 
         
         if (str_in == '1') : 
-            os.system('less ./LAMMPS/in.lmp')
+            os.system('less ./lammps/in.lmp')
             str_in = '0'
 
         elif (str_in == '2') :
-            os.system('./run.sh -o dump.out LAMMPS/in.lmp')
+            os.system('./run.sh -o dump.out ./lammps/in.lmp')
             str_in = '0'
 
         elif (str_in == '3'):
