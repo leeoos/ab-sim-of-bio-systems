@@ -1,2 +1,3 @@
 log.lammps
-Output/log.lammps
+prj/models/lammps/output/log.lammps
+prj/lib/__pycache__
