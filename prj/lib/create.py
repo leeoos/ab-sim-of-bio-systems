@@ -1,25 +1,17 @@
-from io import SEEK_CUR
-from tkinter import Radiobutton, Tk     
-from tkinter.filedialog import askopenfilename
-
-#       -- Basic GUI --
-def get_file():
-    Tk().withdraw() 
-    filename = askopenfilename()
-    return filename
 
 
-#       -- Create LAMMPS input  --
+
+#       -- Create LAMMPS input file --
 import os
 import os.path
 import time
 from libsbml import *
 
 #       -- Read SBML file  --
-def read_sbml():
+def read_sbml(filename):
 
-    print("\nSelect a SBLM Model")
-    filename = get_file()
+    #print("\nSelect a SBLM Model")
+    #filename = get_file()
 
     print("\nReading SBML file...")
     time.sleep(1)
@@ -56,13 +48,16 @@ def read_sbml():
 def make_lmp(**kwargs):
 
     r_seed = kwargs.get('r_seed', 5783)
-    in_file_path = kwargs.get('path', None)
+    lmp_file_path = kwargs.get('lmp_file_path', None)
+    sbml_filename = kwargs.get('sbml_filename', None)
 
-    if (in_file_path == None) : 
+    if (lmp_file_path == None) : 
         os.system('mkdir -p ./lammps/')
-        in_file_path = 'lammps/in.lmp'
+        lmp_file_path = 'lammps/in.lmp'
 
-    model = read_sbml()
+    if(sbml_filename == None) : sbml_filename = input("Insert the path to the a SBML file: ")
+
+    model = read_sbml(sbml_filename)
 
     if model == 1:
         os._exit(1)
@@ -75,7 +70,7 @@ def make_lmp(**kwargs):
     reactions = range(1, model.getNumReactions() + 1)
     num_par = model.getNumParameters()
 
-    with open(in_file_path, 'w') as f:
+    with open(lmp_file_path, 'w') as f:
         f.write('# Agent Based Simulation Of Biological Systems\n\n')
     
         # SET UP OF INPUT VARIABLES
