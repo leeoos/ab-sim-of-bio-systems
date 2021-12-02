@@ -1,3 +1,14 @@
+from io import SEEK_CUR
+from tkinter import Radiobutton, Tk     
+from tkinter.filedialog import askopenfilename
+
+#       -- Basic GUI --
+def get_file():
+    Tk().withdraw() 
+    print("\nSelect a SBLM Model")
+    filename = askopenfilename()
+    return filename
+
 import os
 import os.path
 import time
@@ -12,20 +23,27 @@ def run_():
     r_seed = 5783
 
     str_in = 'start'
+
     while True:
         os.system('clear')
+
         if (str_in == 'start'):
             print("\n   Welcome: \n")
             print("Press 1 to generate a input script\n")
             print("Type q to exit\n")
             str_in = input("> ")
+
             if (str_in == '1') :
                 print("\nThe actual rand seed is: " + str(r_seed) + '\n')
                 print("Type a new number if you want to change the rand seed\n")
                 print("Press Enter to continue with the default\n")
                 n_seed = input("> ")
-                if (n_seed != '') : make_lmp(r_seed=int(n_seed), path='./models/lammps/in.lmp')
-                else : make_lmp(path='./models/lammps/in.lmp')
+
+                if (n_seed != '') : make_lmp(r_seed=int(n_seed), 
+                    lmp_file_path='./models/lammps/in.lmp', sbml_filename = get_file())
+                else : make_lmp(lmp_file_path='./models/lammps/in.lmp', 
+                    sbml_filename = get_file())
+                    
                 str_in = '0'
 
         if (str_in != '' and str_in != 'q'):
