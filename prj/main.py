@@ -63,7 +63,11 @@ def run_():
             str_in = '0'
 
         elif (str_in == '2') :
+
+            os.system('./run.sh -t 50000 -o dump.out ./models/lammps/in.lmp')
+
             os.system('./run.sh -o dump.out ./models/lammps/in.lmp')
+
             str_in = '0'
 
         elif (str_in == '3'):
