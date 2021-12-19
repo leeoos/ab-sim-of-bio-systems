@@ -47,7 +47,8 @@ class ReactionValues:
 
         copules = [copules[i:i + 2] for i in range(0, len(copules), 2)]
         return copules
-     
+
+#       -- Create LAMMPS input file --
 
 import os
 import os.path
@@ -98,12 +99,21 @@ def make_lmp(**kwargs):
     lmp_file_path = kwargs.get('lmp_file_path', None)
     sbml_filename = kwargs.get('sbml_filename', None)
 
+
     if (lmp_file_path == None) : 
         os.system('mkdir -p ./lammps/')
         lmp_file_path = 'lammps/in.lmp'
 
     if(sbml_filename == None) : sbml_filename = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/sbmlex/test.xml'
         #sbml_filename = input("Insert the path to the a SBML file: ")
+
+
+    if (lmp_file_path == None) : 
+        os.system('mkdir -p ./lammps/')
+        lmp_file_path = 'lammps/in.lmp'
+
+    if(sbml_filename == None) : sbml_filename = input("Insert the path to the a SBML file: ")
+
 
     model = read_sbml(sbml_filename)
 
@@ -126,7 +136,6 @@ def make_lmp(**kwargs):
     print(r.arrange_reaction(0))
     print(r.arrange_reaction(1))  
 
-     
 
     with open(lmp_file_path, 'w') as f:
         f.write('# Agent Based Simulation Of Biological Systems\n\n')
