@@ -1,65 +1,59 @@
 # This scrip create a LAMMPS input file 
 # based on the SBM model given in input
 
-class ReactionValues:
+class ReactionClass:
 
     def __init__(self, model) -> None:
         self.model = model
         self.num_of_reactions = model.getNumReactions()
-        self.reactants = self.get_all_reactant()
-        self.products = self.get_all_products()
-        self.dictionary = self.make_dict()
+        self.reactants = ['s1', 's3', 's4', 's2', 's5']
+        self.products = ['s6', 's7']
+        self.groups_of_reactants = self.group_reactant()
+        self.id_dictionary = self.make_dict()
+        self.combinations = self.arrange_reactions()
         pass
 
-    def get_all_reactant(self) :
+    def group_reactant(self) :
         rr1 = ['s1', 's4', 's3']
         rr2 = ['s2', 's5']
         return [rr1, rr2]
 
-    def get_all_products(self):
-        pr1 = ['s6']
-        pr2 = ['s7']
-        return [pr1, pr2]
-
+    # DA RIFINIRE
     def make_dict(self):
-        r_dic = {} ; r_value = 1
-        for k in range(0,self.num_of_reactions):
-            for i in self.reactants[k]:
-                r_dic[i] = r_value ; r_value += 1
-            for i in self.products[k]:
-                r_dic[i] = r_value ; r_value += 1
-        return r_dic
+        rr1 = ['s1', 's4', 's3'] ; pr1 = ['s6']
+        rr2 = ['s2', 's5'] ; pr2 = ['s7']
+        r_id_dic = {} ; r_value1 = 1
+        for i in self.reactants:
+            r_value2 = ('r1' if i in rr1 else 'r2')
+            r_id_dic[i] = (r_value1,r_value2) ; r_value1 += 1
+        for i in self.products:
+            r_value2 = ('p1' if i in pr1 else 'p2')
+            r_id_dic[i] = (r_value1,r_value2) ; r_value1 += 1
+        return r_id_dic
 
-
-    def arrange_reaction(self, r_id) :
-        foo = []
-        copules = []
-        num_of_r = len(self.reactants[r_id])
-        iterator = range(1, ((num_of_r * (num_of_r -1)) +1 ))
-        for i in iterator :
-            if (i % num_of_r == 0) :
-                foo.append(num_of_r)
-            else :
-                foo.append(i % num_of_r)
-
-        for k in foo:
-            copules.append(self.dictionary[self.reactants[r_id][k-1]])
-
-        copules = [copules[i:i + 2] for i in range(0, len(copules), 2)]
-        return copules
+    # complexity = O(m (n!/k!(n-k)!)) 
+    # where m = numb of reactions;
+    #       n = max numb of reactant per reaction
+    #       k = 2
+    def arrange_reactions(self):
+        combo = []
+        for r_id in range(0, self.num_of_reactions):
+            rri = len(self.groups_of_reactants[r_id])
+            for i in range(0, rri):
+                for j in range(i+1, rri): 
+                    combo.append((self.groups_of_reactants[r_id][i],
+                                    self.groups_of_reactants[r_id][j]))
+        return combo
 
 #       -- Create LAMMPS input file --
-
 import os
 import os.path
 import time
+import re
 from libsbml import *
 
 #       -- Read SBML file  --
 def read_sbml(filename):
-
-    #print("\nSelect a SBLM Model")
-    #filename = get_file()
 
     print("\nReading SBML file...")
     time.sleep(1)
@@ -95,26 +89,22 @@ def read_sbml(filename):
 #       -- Create a LAMMPS input file --
 def make_lmp(**kwargs):
 
-    r_seed = kwargs.get('r_seed', 5783)
-    lmp_file_path = kwargs.get('lmp_file_path', None)
-    sbml_filename = kwargs.get('sbml_filename', None)
+    # make_lmp optional arguments
+    r_seed = kwargs.get('r_seed', 5783)                 # random seed used inside the simulation
+    lmp_file_path = kwargs.get('lmp_file_path', None)   # path to dir for lammps input
+    sbml_filename = kwargs.get('sbml_filename', None)   # file name of sbml input model 
 
+    # optional: config some parameters just in case this script is runned indipendently
+    if(lmp_file_path == None) :  lmp_file_path = 'in.lmp'
 
-    if (lmp_file_path == None) : 
-        os.system('mkdir -p ./lammps/')
-        lmp_file_path = 'lammps/in.lmp'
+    if (sbml_filename == None) :
+        if(os.path.isfile('/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/resources/sbmlex/test.xml')) : 
+            sbml_filename = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/resources/sbmlex/test.xml'
+        else: 
+            sbml_filename = input("Insert the path to the a SBML file: ")
 
-    if(sbml_filename == None) : sbml_filename = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/sbmlex/test.xml'
-        #sbml_filename = input("Insert the path to the a SBML file: ")
-
-
-    if (lmp_file_path == None) : 
-        os.system('mkdir -p ./lammps/')
-        lmp_file_path = 'lammps/in.lmp'
-
-    if(sbml_filename == None) : sbml_filename = input("Insert the path to the a SBML file: ")
-
-
+    # read sbml input doc and check for errors 
+    # if errors then return exit code 1
     model = read_sbml(sbml_filename)
 
     if model == 1:
@@ -123,19 +113,14 @@ def make_lmp(**kwargs):
     print("\nCreating lammps file as in.lmp ...")
     time.sleep(1)
 
-    # info
+    # get info from model classes such as ReactionClass, ParameterClass, etc
     species = model.getNumSpecies()
 
-    r = ReactionValues(model)
-    reactants = [item for sublist in r.reactants for item in sublist]
-    print(reactants)
-    products = [item for sublist in r.products for item in sublist]
-    print(products)
-    r_dictionary = r.dictionary
-    print(r.dictionary)
-    print(r.arrange_reaction(0))
-    print(r.arrange_reaction(1))  
-
+    r = ReactionClass(model)
+    print(r.reactants) 
+    print(r.products)
+    print(r.id_dictionary)
+    print(r.arrange_reactions())
 
     with open(lmp_file_path, 'w') as f:
         f.write('# Agent Based Simulation Of Biological Systems\n\n')
@@ -189,32 +174,36 @@ def make_lmp(**kwargs):
         f.write("\n#       --- AGENTS PROPRETIES AND FORCE FIELDS ---\n")
         f.write("# creation of atoms of types in randoms spots inside the box\n")
         
-        for k in list(r_dictionary.keys()):
-            if k in products:
-                f.write("create_atoms" + "    " + str(r_dictionary[k]) + " random 0 " + str(r_seed) + " box  #product")
+        for k in list(r.id_dictionary.keys()):
+            if k in r.products:
+                f.write("create_atoms"+"    "+ str(r.id_dictionary[k][0]) +" random 0 "+ str(r_seed) + " box  # "+ k 
+                        +": product of rection "+ r.id_dictionary[k][1])
             else:
-                f.write("create_atoms" + "    " + str(r_dictionary[k]) + " random ${atoms} " + str(r_seed) + " box")
+                f.write("create_atoms"+"    "+ str(r.id_dictionary[k][0]) +" random ${atoms} "+ str(r_seed) + " box  # "+k
+                        +": reactant of rection "+ r.id_dictionary[k][1])
+                        
             r_seed = r_seed + 1
             f.write("\n")
 
         f.write("\n# atoms mass\n")
-        for i in list(r_dictionary.values()) :
-            f.write("mass " + str(i) + " 10.948")
+        for i in list(r.id_dictionary.values()) :
+            f.write("mass " + str(i[0]) + " 10.948")
             f.write("\n")
 
-        f.write("\n# assing atoms to cerian groups\n")
-        for k in list(r_dictionary.keys()) :
-            if k in reactants:
-                f.write("group g" + str(r_dictionary[k]) + " type "+str(r_dictionary[k]))
+        f.write("\n# assing atoms to agents groups\n")
+        ''' 
+        for i in range (0, r.num_of_reactions):
+            new_group = "group agents" + str(i+1) + " type "
+            types = ' '.join([str(v[0]) for v in r.id_dictionary.values() if v[1] == 'r'+str(i+1)])
+            f.write(new_group + types)
             f.write("\n")
-        j=1
-        for i in r.reactants:
-            group_name = "group agents"+str(j)+" union "
-            j += 1
-            for k in i: group_name = group_name + "g"+str(r_dictionary[k]) + " "
-            f.write(group_name)
+        '''
+        types = [""] * r.num_of_reactions
+        for k,v in r.id_dictionary.items():
+            if (bool(re.match("[r]+", v[1]))): types[ int(v[1][1:]) - 1] += " "+ str(v[0]) 
+        for i in range(0, r.num_of_reactions):
+            f.write("group agents"+ str(i+1) +" type "+ types[i])
             f.write("\n")
-
 
         ag_prop = [
         "\n# force fields style and coefficient",
@@ -248,13 +237,11 @@ def make_lmp(**kwargs):
 
         f.writelines(["%s\n" % item  for item in sim1])
 
-        j = 1
-        for i in range(0, r.num_of_reactions):
-            for k in r.arrange_reaction(i) :
-                f.write("fix bond"+str(j)+" all bond/create 10 "+ str(k[0]) +" "+ str(k[1])+ " 1.0 "+ str(i+1) +" prob 0.5 " + str(r_seed))
-                j += 1
-                r_seed = r_seed + j
-                f.write("\n")
+        for i, j in zip(r.combinations, range(0, len(r.combinations))) :
+            f.write("fix bond"+str(j+1)+" all bond/create 10 "+ str(r.id_dictionary[i[0]][0]) +" "+ 
+                                str(r.id_dictionary[i[1]][0])+ " 1.0 "+ str(j+1) +" prob 0.5 " + str(r_seed))
+            r_seed = r_seed + 1
+            f.write("\n")
         
         sim2 = [
         "\n# set velocity for all atoms",
@@ -277,7 +264,7 @@ def make_lmp(**kwargs):
 
         f.write("compute hb0 all property/atom nbonds \n\n")
 
-        for i in range(1, len(r.reactants)+1):
+        for i in range(1, r.num_of_reactions+1):
             f.write("compute hb"+str(i)+" agents"+str(i)+" property/atom nbonds\n")
             f.write("compute cb"+str(i)+" agents"+str(i)+" reduce sum c_hb"+str(i)+"\n")
 
@@ -320,16 +307,12 @@ def make_lmp(**kwargs):
 
         f.writelines(["%s\n" % item  for item in loop1])
 
-        i = 1
-        for p in products:
+        for p, i in zip(r.products, range(1, r.num_of_reactions +1)):
             f.write("variable newatoms"+str(i)+" equal floor(${counter"+str(i)+"}/2)\n")
             f.write("if '${counter"+str(i)+"} > 0' then &\n")
-            f.write("'fix depositatoms all deposit ${newatoms"+str(i)+"} "+str(r_dictionary[p])+" 1 5748 region box near 2.0' \n")
+            f.write("'fix depositatoms all deposit ${newatoms"+str(i)+"} "+str(r.id_dictionary[p][0])+" 1 5748 region box near 2.0' \n")
             f.write("\n")
-            i += 1
 
-        #"variable newatoms equal floor(${bondcounter}/2)",
-        #"if '${bondcounter} > 0' then &",
         "'fix depositatoms all deposit ${newatoms} 6 1 5748 region box near 2.0' ",
         "\n",
         
@@ -364,8 +347,6 @@ def make_lmp(**kwargs):
 
         f.flush()
         os.fsync(f)
-
-        
 
 if __name__ == '__main__':
     make_lmp()
