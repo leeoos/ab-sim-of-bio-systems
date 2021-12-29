@@ -17,10 +17,15 @@ from lib.create import *
 
 def run_():
 
-    os.system('mkdir -p models/lammps/')
+    PATH = os.path.dirname(os.path.realpath(__file__))
+
+    os.system('mkdir -p '+PATH+'/models/')
 
     # default rand seed STARTER -> it will be incremented each time
     r_seed = 5783
+
+    # default simulation time
+    s_time = 5000
 
     str_in = 'start'
 
@@ -35,13 +40,19 @@ def run_():
 
             if (str_in == '1') :
                 print("\nThe actual rand seed is: " + str(r_seed) + '\n')
-                print("Type a new number if you want to change the rand seed\n")
+                print("Type a new number if you want to change it\n")
                 print("Press Enter to continue with the default\n")
                 n_seed = input("> ")
 
+                print("\nThe actual simulation time is: 5000 \n")
+                print("Type a new number if you want to change it\n")
+                print("Press Enter to continue with the default\n")
+                s_time = input("> ")
+                if (s_time == '' ) : s_time = '5000'
+
                 if (n_seed != '') : make_lmp(r_seed=int(n_seed), 
-                    lmp_file_path='./models/lammps/in.lmp', sbml_filename = get_file())
-                else : make_lmp(lmp_file_path='./models/lammps/in.lmp', 
+                    lmp_file_path=PATH+'/models/in.lmp', sbml_filename = get_file())
+                else : make_lmp(lmp_file_path=PATH+'/models/in.lmp', 
                     sbml_filename = get_file())
                     
                 str_in = '0'
@@ -59,15 +70,11 @@ def run_():
 
         
         if (str_in == '1') : 
-            os.system('less ./models/lammps/in.lmp')
+            os.system('less '+PATH+'/models/in.lmp')
             str_in = '0'
 
         elif (str_in == '2') :
-
-            os.system('./run.sh -t 50000 -o dump.out ./models/lammps/in.lmp')
-
-            os.system('./run.sh -o dump.out ./models/lammps/in.lmp')
-
+            os.system('./run.sh -t '+s_time+'-o dump.out '+PATH+'/models/in.lmp')
             str_in = '0'
 
         elif (str_in == '3'):
@@ -87,3 +94,5 @@ def run_():
 
 if __name__ == '__main__':
     run_()
+ 
+
