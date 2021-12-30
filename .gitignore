@@ -2,6 +2,9 @@
 log.lammps
 prj/models/lammps/output/log.lammps
 
+# text
+notes.txt
+
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python

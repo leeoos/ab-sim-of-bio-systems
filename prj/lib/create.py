@@ -1,35 +1,47 @@
 # This scrip create a LAMMPS input file 
 # based on the SBM model given in input
 
+class SpeciesClass:
+
+    def __init__(self, model) -> None:
+        self.model = model.getNumSpecies()
+        self.num_of_species = model.getNumReactions()
+        self.dictionary = self.make_dict()
+        pass
+
+    # DA RIFINIRE
+    def make_dict(self):
+        reactants = ['s1', 's3', 's4', 's2', 's5']
+        products = ['s6', 's7']
+        r_id_dic = {} ; r_value1 = 1
+        for i in reactants:
+            r_id_dic[i] = (r_value1,0) ; r_value1 += 1
+        for i in products:
+            r_id_dic[i] = (r_value1,0) ; r_value1 += 1
+        return r_id_dic
+
+
 class ReactionClass:
 
     def __init__(self, model) -> None:
         self.model = model
         self.num_of_reactions = model.getNumReactions()
+        self.groups_of_reactants = self.group_reactants()
+        self.groups_of_products = self.group_products()
         self.reactants = ['s1', 's3', 's4', 's2', 's5']
         self.products = ['s6', 's7']
-        self.groups_of_reactants = self.group_reactant()
-        self.id_dictionary = self.make_dict()
         self.combinations = self.arrange_reactions()
         pass
 
-    def group_reactant(self) :
+    def group_reactants(self) :
         rr1 = ['s1', 's4', 's3']
         rr2 = ['s2', 's5']
         return [rr1, rr2]
 
-    # DA RIFINIRE
-    def make_dict(self):
-        rr1 = ['s1', 's4', 's3'] ; pr1 = ['s6']
-        rr2 = ['s2', 's5'] ; pr2 = ['s7']
-        r_id_dic = {} ; r_value1 = 1
-        for i in self.reactants:
-            r_value2 = ('r1' if i in rr1 else 'r2')
-            r_id_dic[i] = (r_value1,r_value2) ; r_value1 += 1
-        for i in self.products:
-            r_value2 = ('p1' if i in pr1 else 'p2')
-            r_id_dic[i] = (r_value1,r_value2) ; r_value1 += 1
-        return r_id_dic
+    def group_products(self) :
+        rr1 = ['s6']
+        rr2 = ['s7']
+        return [rr1, rr2]
 
     # complexity = O(m (n!/k!(n-k)!)) 
     # where m = numb of reactions;
@@ -112,15 +124,9 @@ def make_lmp(**kwargs):
 
     print("\nCreating lammps file as in.lmp ...")
     time.sleep(1)
-
-    # get info from model classes such as ReactionClass, ParameterClass, etc
-    species = model.getNumSpecies()
-
-    r = ReactionClass(model)
-    print(r.reactants) 
-    print(r.products)
-    print(r.id_dictionary)
-    print(r.arrange_reactions())
+    
+    S = SpeciesClass(model)
+    R = ReactionClass(model)
 
     with open(lmp_file_path, 'w') as f:
         f.write('# Agent Based Simulation Of Biological Systems\n\n')
@@ -161,7 +167,7 @@ def make_lmp(**kwargs):
 
         "# define simulation box",
         "region      box block 0 30 0 30 0 30",
-        "create_box  "+str(species)+" box  bond/types " + str(len(r.reactants)) + " extra/bond/per/atom 100\n",
+        "create_box  "+str(S.num_of_species)+" box  bond/types " + str(len(R.reactants)) + " extra/bond/per/atom 100\n",
 
         "# create simulation walls",
         "fix xwalls all wall/reflect xlo EDGE xhi EDGE",
@@ -174,35 +180,30 @@ def make_lmp(**kwargs):
         f.write("\n#       --- AGENTS PROPRETIES AND FORCE FIELDS ---\n")
         f.write("# creation of atoms of types in randoms spots inside the box\n")
         
-        for k in list(r.id_dictionary.keys()):
-            if k in r.products:
-                f.write("create_atoms"+"    "+ str(r.id_dictionary[k][0]) +" random 0 "+ str(r_seed) + " box  # "+ k 
-                        +": product of rection "+ r.id_dictionary[k][1])
+        for k in list(S.dictionary.keys()):
+            if k in R.products:
+                f.write("create_atoms"+"    "+ str(S.dictionary[k][0]) +" random 0 "+ str(r_seed) + " box  # "+ k 
+                        +": product ")
             else:
-                f.write("create_atoms"+"    "+ str(r.id_dictionary[k][0]) +" random ${atoms} "+ str(r_seed) + " box  # "+k
-                        +": reactant of rection "+ r.id_dictionary[k][1])
+                f.write("create_atoms"+"    "+ str(S.dictionary[k][0]) +" random ${atoms} "+ str(r_seed) + " box  # "+k
+                        +": reactant ")
                         
             r_seed = r_seed + 1
             f.write("\n")
 
         f.write("\n# atoms mass\n")
-        for i in list(r.id_dictionary.values()) :
+        for i in list(S.dictionary.values()) :
             f.write("mass " + str(i[0]) + " 10.948")
             f.write("\n")
 
         f.write("\n# assing atoms to agents groups\n")
-        ''' 
-        for i in range (0, r.num_of_reactions):
+        
+        for i in range (0, R.num_of_reactions):
+            types = ""
             new_group = "group agents" + str(i+1) + " type "
-            types = ' '.join([str(v[0]) for v in r.id_dictionary.values() if v[1] == 'r'+str(i+1)])
+            for k in R.groups_of_reactants[i]:
+                types = types + str(S.dictionary[k][0]) + " "
             f.write(new_group + types)
-            f.write("\n")
-        '''
-        types = [""] * r.num_of_reactions
-        for k,v in r.id_dictionary.items():
-            if (bool(re.match("[r]+", v[1]))): types[ int(v[1][1:]) - 1] += " "+ str(v[0]) 
-        for i in range(0, r.num_of_reactions):
-            f.write("group agents"+ str(i+1) +" type "+ types[i])
             f.write("\n")
 
         ag_prop = [
@@ -237,9 +238,9 @@ def make_lmp(**kwargs):
 
         f.writelines(["%s\n" % item  for item in sim1])
 
-        for i, j in zip(r.combinations, range(0, len(r.combinations))) :
-            f.write("fix bond"+str(j+1)+" all bond/create 10 "+ str(r.id_dictionary[i[0]][0]) +" "+ 
-                                str(r.id_dictionary[i[1]][0])+ " 1.0 "+ str(j+1) +" prob 0.5 " + str(r_seed))
+        for i, j in zip(R.combinations, range(0, len(R.combinations))) :
+            f.write("fix bond"+str(j+1)+" all bond/create 10 "+ str(S.dictionary[i[0]][0]) +" "+ 
+                                str(S.dictionary[i[1]][0])+ " 1.0 "+ str(j+1) +" prob 0.5 " + str(r_seed))
             r_seed = r_seed + 1
             f.write("\n")
         
@@ -264,7 +265,7 @@ def make_lmp(**kwargs):
 
         f.write("compute hb0 all property/atom nbonds \n\n")
 
-        for i in range(1, r.num_of_reactions+1):
+        for i in range(1, R.num_of_reactions+1):
             f.write("compute hb"+str(i)+" agents"+str(i)+" property/atom nbonds\n")
             f.write("compute cb"+str(i)+" agents"+str(i)+" reduce sum c_hb"+str(i)+"\n")
 
@@ -307,10 +308,10 @@ def make_lmp(**kwargs):
 
         f.writelines(["%s\n" % item  for item in loop1])
 
-        for p, i in zip(r.products, range(1, r.num_of_reactions +1)):
+        for p, i in zip(R.products, range(1, R.num_of_reactions +1)):
             f.write("variable newatoms"+str(i)+" equal floor(${counter"+str(i)+"}/2)\n")
             f.write("if '${counter"+str(i)+"} > 0' then &\n")
-            f.write("'fix depositatoms all deposit ${newatoms"+str(i)+"} "+str(r.id_dictionary[p][0])+" 1 5748 region box near 2.0' \n")
+            f.write("'fix depositatoms all deposit ${newatoms"+str(i)+"} "+str(S.dictionary[p][0])+" 1 5748 region box near 2.0' \n")
             f.write("\n")
 
         "'fix depositatoms all deposit ${newatoms} 6 1 5748 region box near 2.0' ",

@@ -18,14 +18,7 @@ from lib.create import *
 def run_():
 
     PATH = os.path.dirname(os.path.realpath(__file__))
-
     os.system('mkdir -p '+PATH+'/models/')
-
-    # default rand seed STARTER -> it will be incremented each time
-    r_seed = 5783
-
-    # default simulation time
-    s_time = 5000
 
     str_in = 'start'
 
@@ -39,7 +32,7 @@ def run_():
             str_in = input("> ")
 
             if (str_in == '1') :
-                print("\nThe actual rand seed is: " + str(r_seed) + '\n')
+                print("\nThe actual rand seed is: 5783 \n")
                 print("Type a new number if you want to change it\n")
                 print("Press Enter to continue with the default\n")
                 n_seed = input("> ")
@@ -48,9 +41,9 @@ def run_():
                 print("Type a new number if you want to change it\n")
                 print("Press Enter to continue with the default\n")
                 s_time = input("> ")
-                if (s_time == '' ) : s_time = '5000'
+                if (s_time == "" ) : s_time = "5000"
 
-                if (n_seed != '') : make_lmp(r_seed=int(n_seed), 
+                if (n_seed != "") : make_lmp(r_seed=int(n_seed), 
                     lmp_file_path=PATH+'/models/in.lmp', sbml_filename = get_file())
                 else : make_lmp(lmp_file_path=PATH+'/models/in.lmp', 
                     sbml_filename = get_file())
@@ -78,7 +71,7 @@ def run_():
             str_in = '0'
 
         elif (str_in == '3'):
-            os.system('python3 main.py')
+            os.system('python3 '+ PATH +'/main.py')
             return 0
     
         elif (str_in == 'q'):
