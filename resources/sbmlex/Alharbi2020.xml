@@ -695,9 +695,6 @@ Changes in diet are heavily associated with high mortality rates in several type
 	</bqbiol:isVersionOf>
 	</rdf:Description>
 	
-	
-	
-	
           </rdf:RDF>
           <COPASI xmlns="http://www.copasi.org/static/sbml">
             <rdf:RDF xmlns:CopasiMT="http://www.copasi.org/RDF/MiriamTerms#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
@@ -708,7 +705,7 @@ Changes in diet are heavily associated with high mortality rates in several type
             </rdf:RDF>
           </COPASI>
         </annotation>
-              <listOfProducts>
+        <listOfProducts>
           <speciesReference species="Normal_cells" stoichiometry="1"/>
         </listOfProducts>
         <kineticLaw>
@@ -724,7 +721,7 @@ Changes in diet are heavily associated with high mortality rates in several type
               </apply>
             </apply>
           </math>
-                </kineticLaw>
+        </kineticLaw>
       </reaction>
       <reaction id="Normal_cell_death_inhibition" metaid="COPASI22" name="Normal_cell_death/inhibition" reversible="false">
         <annotation>

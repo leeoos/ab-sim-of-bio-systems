@@ -1,24 +1,34 @@
 # This scrip create a LAMMPS input file 
 # based on the SBM model given in input
 
+#       --- CLASSES ---
+
 class SpeciesClass:
 
     def __init__(self, model) -> None:
-        self.model = model.getNumSpecies()
-        self.num_of_species = model.getNumReactions()
-        self.dictionary = self.make_dict()
+        self.num_of_species = model.getNumSpecies() 
+        self.species = self.__get_species(model)
+        self.dictionary = self.__make_dict_of_species(model)
         pass
 
+    def __get_species(self, model):
+        species = []
+        for i in range(self.num_of_species):
+            species.append(model.getSpecies(i).getId())
+        return species
+
     # DA RIFINIRE
-    def make_dict(self):
-        reactants = ['s1', 's3', 's4', 's2', 's5']
-        products = ['s6', 's7']
-        r_id_dic = {} ; r_value1 = 1
-        for i in reactants:
-            r_id_dic[i] = (r_value1,0) ; r_value1 += 1
-        for i in products:
-            r_id_dic[i] = (r_value1,0) ; r_value1 += 1
-        return r_id_dic
+    # entry structure: 'species_id': (atom_id, 'compartment_id', )
+    def __make_dict_of_species(self, model):
+        dic_of_species = {} ; s_atom_id = 1
+        for i in range(self.num_of_species):
+            specie = model.getSpecies(i)
+            dic_of_species[specie.getId()]= (  s_atom_id,
+                                                specie.getCompartment(),
+                                                int(specie.getInitialAmount())
+                                            ) 
+            s_atom_id += 1
+        return dic_of_species
 
 
 class ReactionClass:
@@ -26,28 +36,47 @@ class ReactionClass:
     def __init__(self, model) -> None:
         self.model = model
         self.num_of_reactions = model.getNumReactions()
-        self.groups_of_reactants = self.group_reactants()
-        self.groups_of_products = self.group_products()
-        self.reactants = ['s1', 's3', 's4', 's2', 's5']
-        self.products = ['s6', 's7']
-        self.combinations = self.arrange_reactions()
+
+        __reac_tuple = self.__group_reactants(model)
+        self.groups_of_reactants = __reac_tuple[0]
+        self.reactants = __reac_tuple[1]
+
+        __prod_tuple = self.__group_products(model)
+        self.groups_of_products = __prod_tuple[0]
+        self.products = __prod_tuple[1]
+
+        self.combinations = self.__arrange_reactions()
         pass
 
-    def group_reactants(self) :
-        rr1 = ['s1', 's4', 's3']
-        rr2 = ['s2', 's5']
-        return [rr1, rr2]
+    def __group_reactants(self, model) :
+        reactants = []
+        groups_of_reactants = []
+        for i in range(self.num_of_reactions):
+            rxn = model.getReaction(i)
+            rri = []
+            for j in range(rxn.getNumReactants()):
+                reactant = rxn.getReactant(j).getSpecies()
+                rri.append(reactant) ; reactants.append(reactant)
+            groups_of_reactants.append(rri)
+        return (groups_of_reactants, reactants)
 
-    def group_products(self) :
-        rr1 = ['s6']
-        rr2 = ['s7']
-        return [rr1, rr2]
+    def __group_products(self, model) :
+        products = []
+        groups_of_products= []
+        for i in range(self.num_of_reactions):
+            rxn = model.getReaction(i)
+            pri = []
+            for j in range(rxn.getNumProducts()):
+                reactant = rxn.getProduct(j).getSpecies()
+                pri.append(reactant) ; products.append(reactant)
+            groups_of_products.append(pri)
+        return (groups_of_products, products)
 
     # complexity = O(m (n!/k!(n-k)!)) 
     # where m = numb of reactions;
     #       n = max numb of reactant per reaction
     #       k = 2
-    def arrange_reactions(self):
+    def __arrange_reactions(self):
         combo = []
         for r_id in range(0, self.num_of_reactions):
             rri = len(self.groups_of_reactants[r_id])
@@ -57,27 +86,27 @@ class ReactionClass:
                                     self.groups_of_reactants[r_id][j]))
         return combo
 
-#       -- Create LAMMPS input file --
+
+#           --- FUNCTIONS ---
 import os
 import os.path
 import time
-import re
 from libsbml import *
 
-#       -- Read SBML file  --
+#       -- Check SBML file  --
 def read_sbml(filename):
 
     print("\nReading SBML file...")
     time.sleep(1)
     document = readSBML(filename)
 
-    #       -- Checks for errors --
+    # check for errors in doc
     if document.getNumErrors() > 0:
         print("Encountered the following SBML errors:" )
         document.printErrors()
-        return 1
+        os._exit(1)
 
-    #       -- Get doc version --
+    # get doc version 
     level = document.getLevel()
     version = document.getVersion()
     short_filename = filename[filename.rfind('/')+1:]
@@ -86,12 +115,21 @@ def read_sbml(filename):
                 + " (Level " + str(level) + ", version " + str(version) + ")" )
     time.sleep(1)
 
+    # make a libSBML model to check
     model = document.getModel()
 
+    # check if model is present
     if model is None:
         print("No model present." )
-        return 1
+        os._exit(1)
 
+    # check if model is valid
+    if model == 1:
+        print("No model present." )
+        os._exit(1)
+
+    # check if the model is a 
+    # Systems Biology Ontology type
     if model.isSetSBOTerm():
         print("      model sboTerm: " + model.getSBOTerm() )
         time.sleep(1)
@@ -104,29 +142,41 @@ def make_lmp(**kwargs):
     # make_lmp optional arguments
     r_seed = kwargs.get('r_seed', 5783)                 # random seed used inside the simulation
     lmp_file_path = kwargs.get('lmp_file_path', None)   # path to dir for lammps input
-    sbml_filename = kwargs.get('sbml_filename', None)   # file name of sbml input model 
+    sbml_model_file = kwargs.get('sbml_filename', None)   # file name of sbml input model 
 
     # optional: config some parameters just in case this script is runned indipendently
     if(lmp_file_path == None) :  lmp_file_path = 'in.lmp'
 
-    if (sbml_filename == None) :
+    if (sbml_model_file == None) :
         if(os.path.isfile('/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/resources/sbmlex/test.xml')) : 
-            sbml_filename = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/resources/sbmlex/test.xml'
+            sbml_model_file = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/resources/sbmlex/Alharbi2020.xml'
         else: 
-            sbml_filename = input("Insert the path to the a SBML file: ")
+            sbml_model_file = input("Insert the path to the a SBML file: ")
 
     # read sbml input doc and check for errors 
     # if errors then return exit code 1
-    model = read_sbml(sbml_filename)
-
-    if model == 1:
-        os._exit(1)
+    model = read_sbml(sbml_model_file)
 
     print("\nCreating lammps file as in.lmp ...")
     time.sleep(1)
     
+    # new objects of model's classes such as SpeciesClass, ReactionClass ...
     S = SpeciesClass(model)
     R = ReactionClass(model)
+
+    
+    print()
+    print(S.num_of_species)
+    print(S.species)
+    print(S.dictionary)
+    print()
+    print(R.num_of_reactions)
+    print(R.groups_of_reactants)
+    print(R.reactants)
+    print(R.groups_of_products)
+    print(R.products)
+
+    
 
     with open(lmp_file_path, 'w') as f:
         f.write('# Agent Based Simulation Of Biological Systems\n\n')
@@ -182,18 +232,18 @@ def make_lmp(**kwargs):
         
         for k in list(S.dictionary.keys()):
             if k in R.products:
-                f.write("create_atoms"+"    "+ str(S.dictionary[k][0]) +" random 0 "+ str(r_seed) + " box  # "+ k 
-                        +": product ")
+                f.write("create_atoms"+"    "+ str(S.dictionary[k][0]) +" random "+ str(S.dictionary[k][2]) +
+                        " "+ str(r_seed) + " box  # "+ k +": product ")
             else:
-                f.write("create_atoms"+"    "+ str(S.dictionary[k][0]) +" random ${atoms} "+ str(r_seed) + " box  # "+k
-                        +": reactant ")
+                f.write("create_atoms"+"    "+ str(S.dictionary[k][0]) +" random "+ str(S.dictionary[k][2]) +
+                        " "+ str(r_seed) + " box  # "+ k +": reactant ")
                         
             r_seed = r_seed + 1
             f.write("\n")
 
         f.write("\n# atoms mass\n")
         for i in list(S.dictionary.values()) :
-            f.write("mass " + str(i[0]) + " 10.948")
+            f.write("mass " + str(i[0]) + " 1.0")
             f.write("\n")
 
         f.write("\n# assing atoms to agents groups\n")

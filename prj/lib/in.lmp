@@ -1,0 +1,189 @@
+# Agent Based Simulation Of Biological Systems
+
+
+#       --- SET UP OF INPUT VARIABLES ---
+
+# rnseed : int = seed for random numbers
+variable rnseed index 10
+variable probability equal random(0,1,${rnseed})
+
+# duration : int = N number of steps for the current run
+variable time_value index 50  #default value
+variable duration equal ${time_value}
+
+# atoms : int = N number of atoms of each type to generate 
+variable num_atoms index 5
+variable atoms equal ${num_atoms}
+
+
+#       --- SIMULATION BOX PROPERTIES ---
+
+# sym measure units and atoms style
+units       lj
+atom_style  full 
+
+# box dimension, boudaries and structure
+dimension   3  
+boundary    f f f 
+lattice     fcc 3.52
+
+# flag2 = on or off for bonded interactions
+newton on off
+
+# define simulation box
+region      box block 0 30 0 30 0 30
+create_box  3 box  bond/types 3 extra/bond/per/atom 100
+
+# create simulation walls
+fix xwalls all wall/reflect xlo EDGE xhi EDGE
+fix ywalls all wall/reflect ylo EDGE yhi EDGE
+fix zwalls all wall/reflect zlo EDGE zhi EDGE
+
+
+#       --- AGENTS PROPRETIES AND FORCE FIELDS ---
+# creation of atoms of types in randoms spots inside the box
+create_atoms    1 random 0 5783 box  # Normal_cells: product 
+create_atoms    2 random 0 5784 box  # Tumor_cells: product 
+create_atoms    3 random 0 5785 box  # Immune_cells: product 
+
+# atoms mass
+mass 1 1.0
+mass 2 1.0
+mass 3 1.0
+
+# assing atoms to agents groups
+group agents1 type 
+group agents2 type 1 
+group agents3 type 
+group agents4 type 2 
+group agents5 type 
+group agents6 type 3 
+
+# force fields style and coefficient
+pair_style zero 5.0
+pair_coeff * *
+
+# bond style and coefficients
+bond_style  harmonic
+bond_coeff * 100 1.1
+
+ 
+#      --- SIMULATION ---
+
+# set time steps 
+timestep 0.001   # seconds
+
+# This command sets parameters that affect
+# the building of pairwise neighbor lists
+neighbor 0.001 bin
+neigh_modify every 10 delay 100
+
+# print thermodinamic inf every N timesteps
+thermo 100 
+
+# fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values
+# this fix will attempt to create new bond btw atoms of 
+# type 1 and 2 every Nevery timestep
+
+# set velocity for all atoms
+velocity all create 300.0 4928459 rot yes dist gaussian 
+
+# perform plain time integration 
+# to update position and velocity
+# and simulate Brownioan motion
+fix 1 all nve
+fix 2 all langevin 300.0 300.0 10.0 904297
+
+# compute if atoms has a bonds
+# and total number of bonds btw all atoms
+compute hb0 all property/atom nbonds 
+
+compute hb1 agents1 property/atom nbonds
+compute cb1 agents1 reduce sum c_hb1
+
+compute hb2 agents2 property/atom nbonds
+compute cb2 agents2 reduce sum c_hb2
+
+compute hb3 agents3 property/atom nbonds
+compute cb3 agents3 reduce sum c_hb3
+
+compute hb4 agents4 property/atom nbonds
+compute cb4 agents4 reduce sum c_hb4
+
+compute hb5 agents5 property/atom nbonds
+compute cb5 agents5 reduce sum c_hb5
+
+compute hb6 agents6 property/atom nbonds
+compute cb6 agents6 reduce sum c_hb6
+
+
+# this lines are necessary to insure that the “hasbond” and 'newatoms' 
+# variables are current when the group command invokes it.
+thermo_style custom step temp pe c_cb1 c_cb2 c_cb3 c_cb4 c_cb5 c_cb6 
+run 0
+
+# hasbond : boolean = true if atom I has a bond with atom J
+variable hasbond atom 'c_hb0 > 0.0'
+
+# counter : int = N total number of bonds in the sim
+variable counter1 equal ceil(c_cb1)
+variable counter2 equal ceil(c_cb2)
+variable counter3 equal ceil(c_cb3)
+variable counter4 equal ceil(c_cb4)
+variable counter5 equal ceil(c_cb5)
+variable counter6 equal ceil(c_cb6)
+
+# print themo info every timestep
+thermo_style custom step temp pe v_counter1 v_counter2 v_counter3 v_counter4 v_counter5 v_counter6 
+
+# dumps atoms information
+dump 1 all custom 10 dump.out id x y z type 
+
+
+#       --- LOOP---
+
+label loop
+variable step loop ${duration}   # loop length
+
+# create new atoms only if new bonds have been made
+# the num of new atoms is linked to the number of new bonds as follow:
+# fix ID group-ID deposit N type M seed keyword values
+variable newatoms1 equal floor(${counter1}/2)
+if '${counter1} > 0' then &
+'fix depositatoms all deposit ${newatoms1} 1 1 5748 region box near 2.0' 
+
+variable newatoms2 equal floor(${counter2}/2)
+if '${counter2} > 0' then &
+'fix depositatoms all deposit ${newatoms2} 2 1 5748 region box near 2.0' 
+
+variable newatoms3 equal floor(${counter3}/2)
+if '${counter3} > 0' then &
+'fix depositatoms all deposit ${newatoms3} 3 1 5748 region box near 2.0' 
+
+
+# assing all atoms that have a bond to the garbage group
+group garbage dynamic all every 1 var hasbond
+
+# append new values on dump file
+dump_modify 1 append yes
+
+# perform n steps in loop
+run 100
+
+# delate all atoms in garbage
+delete_atoms group garbage bond yes mol yes compress no
+
+# jump to loop lable until step > 0 
+next step
+jump SELF loop
+
+# end of loop
+label break
+
+# check on input variables
+variable total_atoms equal ${num_atoms}*2
+print ''
+print 'Starting Atoms: ${total_atoms}' 
+print 'Duration: ${duration}'
+print 'ALL DONE' 
+
