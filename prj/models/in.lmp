@@ -32,7 +32,7 @@ newton on off
 
 # define simulation box
 region      box block 0 30 0 30 0 30
-create_box  2 box  bond/types 5 extra/bond/per/atom 100
+create_box  7 box  bond/types 5 extra/bond/per/atom 100
 
 # create simulation walls
 fix xwalls all wall/reflect xlo EDGE xhi EDGE
@@ -42,26 +42,26 @@ fix zwalls all wall/reflect zlo EDGE zhi EDGE
 
 #       --- AGENTS PROPRETIES AND FORCE FIELDS ---
 # creation of atoms of types in randoms spots inside the box
-create_atoms    1 random ${atoms} 5783 box  # s1: reactant 
-create_atoms    2 random ${atoms} 5784 box  # s3: reactant 
-create_atoms    3 random ${atoms} 5785 box  # s4: reactant 
-create_atoms    4 random ${atoms} 5786 box  # s2: reactant 
-create_atoms    5 random ${atoms} 5787 box  # s5: reactant 
+create_atoms    1 random 5 5783 box  # s1: reactant 
+create_atoms    2 random 5 5784 box  # s2: reactant 
+create_atoms    3 random 5 5785 box  # s3: reactant 
+create_atoms    4 random 5 5786 box  # s4: reactant 
+create_atoms    5 random 5 5787 box  # s5: reactant 
 create_atoms    6 random 0 5788 box  # s6: product 
 create_atoms    7 random 0 5789 box  # s7: product 
 
 # atoms mass
-mass 1 10.948
-mass 2 10.948
-mass 3 10.948
-mass 4 10.948
-mass 5 10.948
-mass 6 10.948
-mass 7 10.948
+mass 1 1.0
+mass 2 1.0
+mass 3 1.0
+mass 4 1.0
+mass 5 1.0
+mass 6 1.0
+mass 7 1.0
 
 # assing atoms to agents groups
-group agents1 type 1 3 2 
-group agents2 type 4 5 
+group agents1 type 1 4 3 
+group agents2 type 2 5 
 
 # force fields style and coefficient
 pair_style zero 5.0
@@ -88,10 +88,10 @@ thermo 100
 # fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values
 # this fix will attempt to create new bond btw atoms of 
 # type 1 and 2 every Nevery timestep
-fix bond1 all bond/create 10 1 3 1.0 1 prob 0.5 5790
-fix bond2 all bond/create 10 1 2 1.0 2 prob 0.5 5791
-fix bond3 all bond/create 10 3 2 1.0 3 prob 0.5 5792
-fix bond4 all bond/create 10 4 5 1.0 4 prob 0.5 5793
+fix bond1 all bond/create 10 1 4 1.0 1 prob 0.5 5790
+fix bond2 all bond/create 10 1 3 1.0 2 prob 0.5 5791
+fix bond3 all bond/create 10 4 3 1.0 3 prob 0.5 5792
+fix bond4 all bond/create 10 2 5 1.0 4 prob 0.5 5793
 
 # set velocity for all atoms
 velocity all create 300.0 4928459 rot yes dist gaussian 
