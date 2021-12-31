@@ -149,7 +149,7 @@ def make_lmp(**kwargs):
 
     if (sbml_model_file == None) :
         if(os.path.isfile('/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/resources/sbmlex/test.xml')) : 
-            sbml_model_file = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/resources/sbmlex/Alharbi2020.xml'
+            sbml_model_file = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/resources/sbmlex/test.xml'
         else: 
             sbml_model_file = input("Insert the path to the a SBML file: ")
 
