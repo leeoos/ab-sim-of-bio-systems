@@ -1,0 +1,17 @@
+
+Run LAMMPS Command Manual
+
+    Usage: ranlmp [options ... arguments] in.lammps 
+
+Options:
+
+    -  Ovito:      -o dump.output      Pass the dump file to ovito and visualize the simulation
+
+    -  Time:       -t Time             Set the simulation time
+
+    -  Atoms:      -a N                Number of atoms to generate
+
+    -  Help:       -h  
+
+Note: the order between the option doesn't matter but all option should precide the input file (in.lamps)
+

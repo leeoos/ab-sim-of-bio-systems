@@ -17,8 +17,10 @@ from lib.create import *
 
 def run_():
 
+    lmp_dir = 'simulation'
+
     PATH = os.path.dirname(os.path.realpath(__file__))
-    os.system('mkdir -p '+PATH+'/models/')
+    os.system('mkdir -p '+PATH+'/'+lmp_dir+'/')
 
     str_in = 'start'
 
@@ -37,15 +39,15 @@ def run_():
                 print("Press Enter to continue with the default\n")
                 n_seed = input("> ")
 
-                print("\nThe actual simulation time is: 5000 \n")
+                print("\nThe actual "+lmp_dir+" time is: 5000 \n")
                 print("Type a new number if you want to change it\n")
                 print("Press Enter to continue with the default\n")
                 s_time = input("> ")
                 if (s_time == "" ) : s_time = "5000"
 
                 if (n_seed != "") : make_lmp(r_seed=int(n_seed), 
-                    lmp_file_path=PATH+'/models/in.lmp', sbml_filename = get_file())
-                else : make_lmp(lmp_file_path=PATH+'/models/in.lmp', 
+                    lmp_file_path=PATH+'/'+lmp_dir+'/in.lmp', sbml_filename = get_file())
+                else : make_lmp(lmp_file_path=PATH+'/'+lmp_dir+'/in.lmp', 
                     sbml_filename = get_file())
                     
                 str_in = '0'
@@ -63,11 +65,11 @@ def run_():
 
         
         if (str_in == '1') : 
-            os.system('less '+PATH+'/models/in.lmp')
+            os.system('less '+PATH+'/'+lmp_dir+'/in.lmp')
             str_in = '0'
 
         elif (str_in == '2') :
-            os.system('./run.sh -t '+s_time+'-o dump.out '+PATH+'/models/in.lmp')
+            os.system(PATH+'/run.sh -t '+s_time+' -o dump.out '+PATH+'/'+lmp_dir+'/in.lmp')
             str_in = '0'
 
         elif (str_in == '3'):

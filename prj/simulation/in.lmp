@@ -3,17 +3,18 @@
 
 #       --- SET UP OF INPUT VARIABLES ---
 
-# rnseed : int = seed for random numbers
-variable rnseed index 10
-variable probability equal random(0,1,${rnseed})
-
 # duration : int = N number of steps for the current run
-variable time_value index 50  #default value
-variable duration equal ${time_value}
+variable time_value index 50  # default value: 50 loop * 100 steps
+variable loop_len equal ${time_value}
 
 # atoms : int = N number of atoms of each type to generate 
-variable num_atoms index 5
-variable atoms equal ${num_atoms}
+# uncomment this lines and substitue the number of atoms
+# in the create_atoms command with this variable 
+# to modify the initial amount of atoms in the simulation;
+# prj/run.sh -h for more info
+# Note: doing so the initial amount will be the same for all atoms types
+#variable num_atoms index 5
+#variable atoms equal ${num_atoms}
 
 
 #       --- SIMULATION BOX PROPERTIES ---
@@ -42,13 +43,13 @@ fix zwalls all wall/reflect zlo EDGE zhi EDGE
 
 #       --- AGENTS PROPRETIES AND FORCE FIELDS ---
 # creation of atoms of types in randoms spots inside the box
-create_atoms    1 random 5 5783 box  # s1: reactant 
-create_atoms    2 random 5 5784 box  # s2: reactant 
-create_atoms    3 random 5 5785 box  # s3: reactant 
-create_atoms    4 random 5 5786 box  # s4: reactant 
-create_atoms    5 random 5 5787 box  # s5: reactant 
-create_atoms    6 random 0 5788 box  # s6: product 
-create_atoms    7 random 0 5789 box  # s7: product 
+create_atoms    1 random 5 5783 box  # s1     | reactant |
+create_atoms    2 random 5 5784 box  # s2     | reactant |
+create_atoms    3 random 5 5785 box  # s3     | reactant |
+create_atoms    4 random 5 5786 box  # s4     | reactant |
+create_atoms    5 random 5 5787 box  # s5     | reactant |
+create_atoms    6 random 0 5788 box  # s6      | product  |
+create_atoms    7 random 0 5789 box  # s7      | product  |
 
 # atoms mass
 mass 1 1.0
@@ -86,8 +87,7 @@ neigh_modify every 10 delay 100
 thermo 100 
 
 # fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values
-# this fix will attempt to create new bond btw atoms of 
-# type 1 and 2 every Nevery timestep
+# this fix will attempt to create new bond btw atoms of type i and j every N timestep
 fix bond1 all bond/create 10 1 4 1.0 1 prob 0.5 5790
 fix bond2 all bond/create 10 1 3 1.0 2 prob 0.5 5791
 fix bond3 all bond/create 10 4 3 1.0 3 prob 0.5 5792
@@ -121,6 +121,7 @@ run 0
 # hasbond : boolean = true if atom I has a bond with atom J
 variable hasbond atom 'c_hb0 > 0.0'
 
+
 # counter : int = N total number of bonds in the sim
 variable counter1 equal ceil(c_cb1)
 variable counter2 equal ceil(c_cb2)
@@ -135,22 +136,23 @@ dump 1 all custom 10 dump.out id x y z type
 #       --- LOOP---
 
 label loop
-variable step loop ${duration}   # loop length
+variable step loop ${loop_len}   # loop length
 
 # create new atoms only if new bonds have been made
 # the num of new atoms is linked to the number of new bonds as follow:
 # fix ID group-ID deposit N type M seed keyword values
 variable newatoms1 equal floor(${counter1}/2)
 if '${counter1} > 0' then &
-'fix depositatoms all deposit ${newatoms1} 6 1 5748 region box near 2.0' 
+'fix deposit1 all deposit ${newatoms1} 6 1 5748 region box near 2.0' 
 
 variable newatoms2 equal floor(${counter2}/2)
 if '${counter2} > 0' then &
-'fix depositatoms all deposit ${newatoms2} 7 1 5748 region box near 2.0' 
+'fix deposit2 all deposit ${newatoms2} 7 1 5748 region box near 2.0' 
 
 
 # assing all atoms that have a bond to the garbage group
 group garbage dynamic all every 1 var hasbond
+
 
 # append new values on dump file
 dump_modify 1 append yes
@@ -169,9 +171,9 @@ jump SELF loop
 label break
 
 # check on input variables
-variable total_atoms equal ${num_atoms}*2
+variable duration equal ${loop_len}*100
 print ''
-print 'Starting Atoms: ${total_atoms}' 
+print 'Starting Atoms: ' 
 print 'Duration: ${duration}'
 print 'ALL DONE' 
 

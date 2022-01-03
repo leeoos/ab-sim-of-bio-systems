@@ -3,18 +3,20 @@
 usage() { echo $1; echo ;echo "Usage: ${0: -6} [-o dump.output] [-t Time] [-a N] [-r ] in.lammps " 1>&2; 
 echo "Type: ${0: -6} -h for help" 1>&2; exit 1; }
 
-# remove previous dump file whit same name to avoid errors
-rm dump.* 2> /dev/null
-rm log.* 2> /dev/null
-rm output/dump.* 2> /dev/null
-rm output/log.* 2> /dev/null
-
 # inizialise variables
+path_to_this_file=$( realpath "$0"  ) && dirname "$path_to_this_file"}
+path_to_this_file=${path_to_this_file%/*}
 ovito=false
-time_value=1500
+time_value=50
 num_atoms=5
 rand=0
 help=false
+
+# remove previous dump file whit same name to avoid errors
+rm dump.* 2> /dev/null
+rm log.* 2> /dev/null
+rm ${path_to_this_file}/output/dump.* 2> /dev/null
+rm ${path_to_this_file}/output/log.* 2> /dev/null
 
 while getopts ":o:t:a:rh" opt; do
     case "${opt}" in
@@ -30,9 +32,6 @@ while getopts ":o:t:a:rh" opt; do
 
         a)  num_atoms=${OPTARG}
             [[ ! ${num_atoms//[0-9]/} ]] || usage "Error: unexpeted value for option '$opt': integer needed"
-            ;;
-
-        r)  rand=$RANDOM
             ;;
 
         h)  help=true
@@ -53,7 +52,7 @@ shift $((OPTIND-1))
 # display helping manual 
 if $help
 then
-    cat $HOME/bin/instructions.txt
+    cat $path_to_this_file/../resources/instructions.txt
     exit 0
 fi
 
@@ -70,7 +69,7 @@ then
 fi
 
 # run lammps input script with apropriate symulation time and random seed
-env OMP_NUM_THREADS=16 lmp -sf omp -in $1 -var time_value $time_value -var rnseed $rand -var num_atoms $num_atoms
+env OMP_NUM_THREADS=16 lmp -sf omp -in $1 -var time_value $time_value -var num_atoms $num_atoms
 
 # to be on the safe side
 sleep 1
@@ -79,14 +78,14 @@ sleep 1
 mkdir -p output
 
 # move the output files to the correct directory
-mv $dump output/    2> /dev/null
-mv dump.* output/   2> /dev/null
-mv log.* output/    2> /dev/null
+mv $dump ${path_to_this_file}/output/    2> /dev/null
+mv dump.* ${path_to_this_file}/output/   2> /dev/null
+mv log.* ${path_to_this_file}/output/    2> /dev/null
 
 # run ovito on the dump file
 if $ovito 
 then
-    setsid ovito output/$dump
+    setsid ovito ${path_to_this_file}/output/$dump
 fi
 
 exit 0
