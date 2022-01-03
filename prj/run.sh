@@ -75,7 +75,7 @@ env OMP_NUM_THREADS=16 lmp -sf omp -in $1 -var time_value $time_value -var num_a
 sleep 1
 
 # create a output directory if not exist
-mkdir -p output
+mkdir -p ${path_to_this_file}/output
 
 # move the output files to the correct directory
 mv $dump ${path_to_this_file}/output/    2> /dev/null
