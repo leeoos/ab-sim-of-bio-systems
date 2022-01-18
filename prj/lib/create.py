@@ -61,7 +61,7 @@ class ReactionClass:
         groups_of_reactants = []
         for i in range(self.num_of_reactions):
             rxn = model.getReaction(i)
-            rri = []
+            rri = [] # reatants of reaction i
             for j in range(rxn.getNumReactants()):
                 reactant = rxn.getReactant(j).getSpecies()
                 rri.append(reactant) ; reactants.append(reactant)
@@ -279,6 +279,8 @@ def make_lmp(**kwargs):
                     types = types + str(S.dictionary[k][0]) + " "
                 f.write(new_group + types)
                 f.write("\n")
+
+        
 
         if (S.ammount == 0) :
             f.write("group to_dump empty\n")
