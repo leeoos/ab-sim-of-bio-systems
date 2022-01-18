@@ -2,12 +2,18 @@
 # based on the SBM model given in input
 
 #       --- CLASSES ---
+import os
+from functools import reduce
+import math
 
+# get info of the species
 class SpeciesClass:
 
     def __init__(self, model) -> None:
         self.num_of_species = model.getNumSpecies() 
         self.species = self.__get_species(model)
+        self.amounts = self.__compute_amounts(model)   
+        self.total_amount = int(reduce(lambda x,y: x+y, self.amounts))
         self.dictionary = self.__make_dict_of_species(model)
         pass
 
@@ -17,21 +23,44 @@ class SpeciesClass:
             species.append(model.getSpecies(i).getId())
         return species
 
+    def __compute_amounts(self, model):
+        amounts = []; scale = True
+        for i in range(self.num_of_species):
+            specie = model.getSpecies(i)
+            value = specie.getInitialConcentration()
+            if (math.isnan(value)) : scale = False; break
+            else : amounts.append(value)
+        if scale:
+            # compute a reduced number of moles
+            my_n_moli = (reduce(lambda x,y: x+y, amounts))/self.num_of_species * 10
+            for i in range(len(amounts)):
+                amounts[i] = math.ceil(amounts[i] * my_n_moli)
+        else:
+            amounts = []
+            for i in range(self.num_of_species):
+                specie = model.getSpecies(i)
+                value = specie.getInitialAmount()
+                print(value)
+                if (math.isnan(value)) : 
+                    print('Error: no initial ammount/concentration given')
+                    os._exit(2)
+                else :
+                    amounts.append(value)
+        return amounts
+
     # entry structure: 'species_id': (atom_id, 'compartment_id', )
     def __make_dict_of_species(self, model):
-        total = 0 
         dic_of_species = {} ; s_atom_id = 1
         for i in range(self.num_of_species):
             specie = model.getSpecies(i)
             dic_of_species[specie.getId()]= (  s_atom_id,
                                                 specie.getCompartment(),
-                                                int(specie.getInitialAmount())
+                                                int(self.amounts[i])
                                             ) 
             s_atom_id += 1
-            total += int(specie.getInitialAmount())
-        self.ammount = total
         return dic_of_species
 
+# get info of the reactions
 class ReactionClass:
 
     def __init__(self, model) -> None:
@@ -96,7 +125,6 @@ class ReactionClass:
 
 
 #           --- FUNCTIONS ---
-import os
 import os.path
 import time
 from libsbml import *
@@ -156,14 +184,16 @@ def make_lmp(**kwargs):
     if(lmp_file_path == None) :  lmp_file_path = 'in.lmp'
 
     if (sbml_model_file == None) :
-        if(os.path.isfile('/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/resources/sbmlex/test.xml')) : 
-            sbml_model_file = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/resources/sbmlex/Alharbi2020.xml' #Alharbi2020
+        test = 'test.xml'
+        if(os.path.isfile('/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test)) : 
+            sbml_model_file = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test #Alharbi2020
         else: 
             sbml_model_file = input("Insert the path to the a SBML file: ")
 
     # read sbml input doc and check for errors 
     # if errors then return exit code 1
     model = read_sbml(sbml_model_file)
+    short_filename = sbml_model_file[sbml_model_file.rfind('/')+1:-4]
 
     print("\nCreating lammps file as in.lmp ...")
     time.sleep(1)
@@ -172,10 +202,10 @@ def make_lmp(**kwargs):
     S = SpeciesClass(model)
     R = ReactionClass(model)
 
-    print(S.dictionary)
-
-    print(S.ammount)
     print()
+    print(S.dictionary)
+    print(R.combinations)
+
     for i in range(R.num_of_reactions):
         print(R.reactions[i], ": ", '\n')
         print("         ", end=' ')
@@ -210,7 +240,7 @@ def make_lmp(**kwargs):
 
         f.writelines(["%s\n" % item  for item in set_up])
 
-        if (S.ammount == 0 ) : expeted_types = S.num_of_species + 1
+        if (S.total_amount == 0 ) : expeted_types = S.num_of_species + 1
         else : expeted_types = S.num_of_species
     
         # SIMULATION BOX PROPERTIES
@@ -254,7 +284,7 @@ def make_lmp(**kwargs):
             r_seed = r_seed + 1
             f.write("\n")
 
-        if (S.ammount == 0): 
+        if (S.total_amount == 0): 
             f.write("create_atoms"+"    "+ str(S.num_of_species+1) +" random 5 "
                         + str(r_seed) + " box  # ghost atom to inizialize velocity")
             r_seed = r_seed + 1
@@ -264,7 +294,7 @@ def make_lmp(**kwargs):
         for i in list(S.dictionary.values()) :
             f.write("mass " + str(i[0]) + " 1.0")
             f.write("\n")
-        if (S.ammount == 0 ) : 
+        if (S.total_amount == 0 ) : 
             f.write("mass " + str(S.num_of_species+1) + " 1.0")
             f.write("\n")
 
@@ -280,7 +310,7 @@ def make_lmp(**kwargs):
                 f.write(new_group + types)
                 f.write("\n")
 
-        if (S.ammount == 0) :
+        if (S.total_amount == 0) :
             f.write("group to_dump empty\n")
  
         ag_prop = [
@@ -339,7 +369,7 @@ def make_lmp(**kwargs):
         thermo_style2 = "thermo_style custom step temp pe "
         counter = "variable counter"
 
-        if (S.ammount == 0) :
+        if (S.total_amount == 0) :
             f.write("compute t   all property/atom type\n")
             to_dump = "to_dump"
             righttype = ("# righttype : boolean = true if atom I is of type between 1 and " 
@@ -381,7 +411,7 @@ def make_lmp(**kwargs):
         thermo_style2,
         
         "\n# dumps atoms information",
-        "dump 1 "+ to_dump + " custom 10 dump.out id x y z type \n"]
+        "dump 1 "+ to_dump + " custom 10 dump."+short_filename+" id x y z type \n"]
 
         f.writelines(["%s\n" % item  for item in sim3])
 
@@ -412,14 +442,14 @@ def make_lmp(**kwargs):
                                     +" 1 5748 region box near 2.0' \n")
                         f.write("\n")
 
-        if(S.ammount == 0):
+        if(S.total_amount == 0):
             to_dump = ("# assing all atoms of the right kind to the dump group\n"
                     +"group to_dump dynamic all every 1 var righttype \n")
         else: to_dump = ""
         
         loop2 = [
         "\n# assing all atoms that have a bond to the garbage group",
-        "group garbage dynamic all every 1 var hasbond\n",
+        "group garbage dynamic all every 1 var hasbond",
 
         to_dump,
         
@@ -442,7 +472,7 @@ def make_lmp(**kwargs):
         "# check on input variables",
         "variable duration equal ${loop_len}*100",
         "print ''",
-        "print 'Starting Atoms: ' ",
+        "print 'Starting Atoms: "+ str(S.total_amount) +" ' ",
         "print 'Duration: ${duration}'",
         "print 'ALL DONE' \n"]
 

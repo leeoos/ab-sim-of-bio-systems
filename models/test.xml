@@ -16,7 +16,7 @@
     </listOfCompartments>
 
     <listOfSpecies>
-      <species id="s1" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s1" compartment="c1" initialAmount="5" initialConcentration="1" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="s2" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="s3" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="s4" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
@@ -37,9 +37,6 @@
           <speciesReference species="s4" constant="true"/>
           <speciesReference species="s3" constant="true"/>
         </listOfReactants>
-        <listOfProducts>
-          <speciesReference species="s6" constant="true"/>
-        </listOfProducts>
       </reaction>
 
       <reaction id="r2" reversible="false" fast="false">
@@ -48,6 +45,7 @@
           <speciesReference species="s5" constant="true"/>
         </listOfReactants>
         <listOfProducts>
+          <speciesReference species="s6" constant="true"/>
           <speciesReference species="s7" constant="true"/>
         </listOfProducts>
       </reaction>
