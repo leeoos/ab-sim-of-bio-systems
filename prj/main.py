@@ -1,6 +1,8 @@
+from fileinput import filename
 from io import SEEK_CUR
 from tkinter import Radiobutton, Tk     
 from tkinter.filedialog import askopenfilename
+from webbrowser import get
 
 #       -- Basic GUI --
 def get_file():
@@ -18,6 +20,9 @@ from lib.create import *
 def run_():
 
     lmp_dir = 'simulation'
+
+    filename = get_file()
+    short_filename = filename[filename.rfind('/')+1:-4]
 
     PATH = os.path.dirname(os.path.realpath(__file__))
     os.system('mkdir -p '+PATH+'/'+lmp_dir+'/')
@@ -46,9 +51,9 @@ def run_():
                 if (s_time == "" ) : s_time = "5000"
 
                 if (n_seed != "") : make_lmp(r_seed=int(n_seed), 
-                    lmp_file_path=PATH+'/'+lmp_dir+'/in.lmp', sbml_filename = get_file())
+                    lmp_file_path=PATH+'/'+lmp_dir+'/in.lmp', sbml_filename = filename)
                 else : make_lmp(lmp_file_path=PATH+'/'+lmp_dir+'/in.lmp', 
-                    sbml_filename = get_file())
+                    sbml_filename = filename)
                     
                 str_in = '0'
 
@@ -69,7 +74,7 @@ def run_():
             str_in = '0'
 
         elif (str_in == '2') :
-            os.system(PATH+'/run.sh -t '+s_time+' -o dump.out '+PATH+'/'+lmp_dir+'/in.lmp')
+            os.system(PATH+'/run.sh -t '+s_time+' -o dump.'+short_filename+' '+PATH+'/'+lmp_dir+'/in.lmp '+ short_filename)
             str_in = '0'
 
         elif (str_in == '3'):

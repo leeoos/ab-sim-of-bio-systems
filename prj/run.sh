@@ -3,7 +3,9 @@
 usage() { echo $1; echo ;echo "Usage: ${0: -6} [-o dump.output] [-t Time] [-a N] [-r ] in.lammps " 1>&2; 
 echo "Type: ${0: -6} -h for help" 1>&2; exit 1; }
 
-# inizialise variables
+# inizialise variables: 
+# $1 = lammmps input file
+# $2 = simulation name
 path_to_this_file=$( realpath "$0"  ) && dirname "$path_to_this_file"}
 path_to_this_file=${path_to_this_file%/*}
 ovito=false
@@ -12,11 +14,17 @@ num_atoms=5
 rand=0
 help=false
 
+# abort command, no simulation name
+if [ -z "$2" ] 
+then
+    usage   "Error: Missing simulation name"
+fi
+
 # remove previous dump file whit same name to avoid errors
 rm dump.* 2> /dev/null
 rm log.* 2> /dev/null
-rm ${path_to_this_file}/output/dump.* 2> /dev/null
-rm ${path_to_this_file}/output/log.* 2> /dev/null
+rm ${path_to_this_file}/output/$2/dump.* 2> /dev/null
+rm ${path_to_this_file}/output/$2/log.* 2> /dev/null
 
 while getopts ":o:t:a:rh" opt; do
     case "${opt}" in
@@ -57,12 +65,12 @@ then
 fi
 
 # abort command, too many arguments
-if [ $# -gt 1 ]
+if [ $# -gt 2 ]
 then 
     usage "Error: Too many argumets given"
 fi
 
-# abort command, too few arguments
+# abort command, no imput file
 if [ -z "$1" ] 
 then
     usage   "Error: Missing input file"
@@ -75,17 +83,17 @@ env OMP_NUM_THREADS=16 lmp -sf omp -in $1 -var time_value $time_value -var num_a
 sleep 1
 
 # create a output directory if not exist
-mkdir -p ${path_to_this_file}/output
+mkdir -p ${path_to_this_file}/output/$2
 
 # move the output files to the correct directory
-mv $dump ${path_to_this_file}/output/    2> /dev/null
-mv dump.* ${path_to_this_file}/output/   2> /dev/null
-mv log.* ${path_to_this_file}/output/    2> /dev/null
+mv $dump ${path_to_this_file}/output/$2/    2> /dev/null
+mv dump.* ${path_to_this_file}/output/$2/   2> /dev/null
+mv log.* ${path_to_this_file}/output/$2/    2> /dev/null
 
 # run ovito on the dump file
 if $ovito 
 then
-    setsid ovito ${path_to_this_file}/output/$dump
+    setsid ovito ${path_to_this_file}/output/$2/$dump
 fi
 
 exit 0
