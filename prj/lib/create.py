@@ -40,7 +40,6 @@ class SpeciesClass:
             for i in range(self.num_of_species):
                 specie = model.getSpecies(i)
                 value = specie.getInitialAmount()
-                print(value)
                 if (math.isnan(value)) : 
                     print('Error: no initial ammount/concentration given')
                     os._exit(2)
@@ -204,8 +203,8 @@ def make_lmp(**kwargs):
 
     print()
     print(S.dictionary)
-    print(R.combinations)
 
+    print("\nReactions Map")
     for i in range(R.num_of_reactions):
         print(R.reactions[i], ": ", '\n')
         print("         ", end=' ')
@@ -300,15 +299,22 @@ def make_lmp(**kwargs):
 
         f.write("\n# assing atoms to agents groups\n")
         
+        mortals = "" 
         for i in range (0, R.num_of_reactions):
-            types = ""
-            new_group = "group agents" + str(i+1) + " type "
+            new_group = "group agents" + str(i+1) + " type " ; types = ""
+            toDie = False 
+
             if (R.groups_of_reactants[i] == []) : pass
             else :
+                if (R.groups_of_products[i] == []) : toDie = True 
                 for k in R.groups_of_reactants[i]:
                     types = types + str(S.dictionary[k][0]) + " "
+                    if toDie : mortals = mortals + " " + str(S.dictionary[k][0]) 
                 f.write(new_group + types)
                 f.write("\n")
+
+        if (mortals != "") :
+            f.write("group mortals type"+ mortals +" \n") 
 
         if (S.total_amount == 0) :
             f.write("group to_dump empty\n")
@@ -428,7 +434,9 @@ def make_lmp(**kwargs):
 
         f.writelines(["%s\n" % item  for item in loop1])
 
+
         for i in range(len(R.groups_of_products)):
+            deposit = []
             if (R.groups_of_products[i] == []) : pass
             else :
                 for p in R.groups_of_products[i] :
@@ -436,16 +444,27 @@ def make_lmp(**kwargs):
                         f.write("fix deposit"+str(i+1)+" all deposit 1 "+str(S.dictionary[p][0])
                                     +" 1 5748 region box near 2.0\n")
                     else:
-                        f.write("variable newatoms"+str(i+1)+" equal floor(${counter"+str(i+1)+"}/2)\n")
-                        f.write("if '${counter"+str(i+1)+"} > 0' then &\n")
-                        f.write("'fix deposit"+str(i+1)+" all deposit ${newatoms"+str(i+1)+"} "+str(S.dictionary[p][0])
-                                    +" 1 5748 region box near 2.0' \n")
-                        f.write("\n")
+                        atom = S.dictionary[p][0]
+                        deposit.append("'fix deposit"+str(atom)+" all deposit ${newatoms"+str(i+1)+"} "+str(atom)
+                                       +" 1 5748 region box near 2.0' &")
+                f.write("variable newatoms"+str(i+1)+" equal floor(${counter"+str(i+1)+"}/2)\n")
+                f.write("if '${counter"+str(i+1)+"} > 0' then &\n")
+                deposit[len(deposit)-1] = deposit[len(deposit)-1][:-1]
+                f.writelines(["%s\n" % item  for item in deposit])
+                #f.write("'fix deposit"+str(i+1)+" all deposit ${newatoms"+str(i+1)+"} "+str(S.dictionary[p][0])
+                #            +" 1 5748 region box near 2.0' \n")
 
         if(S.total_amount == 0):
             to_dump = ("# assing all atoms of the right kind to the dump group\n"
                     +"group to_dump dynamic all every 1 var righttype \n")
         else: to_dump = ""
+
+
+        if (mortals != "") :
+            mortals = "# delate some atoms in mortals every N timestamps \n"
+            mortals = mortals + "# fix ID group-ID evaporate N M region-ID seed \n"
+            mortals = mortals + "fix death mortals evaporate 100 1 box "+ str(r_seed)
+                            
         
         loop2 = [
         "\n# assing all atoms that have a bond to the garbage group",
@@ -461,8 +480,10 @@ def make_lmp(**kwargs):
     
         "# delate all atoms in garbage",
         "delete_atoms group garbage bond yes mol yes compress no\n",
+
+        mortals,
         
-        "# jump to loop lable until step > 0 ",
+        "\n# jump to loop lable until step > 0 ",
         "next step",
         "jump SELF loop\n",
         
