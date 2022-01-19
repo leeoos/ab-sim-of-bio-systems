@@ -2,9 +2,9 @@
 # based on the SBM model given in input
 
 #       --- CLASSES ---
-import os
 from functools import reduce
 import math
+import os
 
 # get info of the species
 class SpeciesClass:
@@ -29,13 +29,8 @@ class SpeciesClass:
             specie = model.getSpecies(i)
             value = specie.getInitialConcentration()
             if (math.isnan(value)) : scale = False; break
-            else : amounts.append(value)
-        if scale:
-            # compute a reduced number of moles
-            my_n_moli = (reduce(lambda x,y: x+y, amounts))/self.num_of_species * 10
-            for i in range(len(amounts)):
-                amounts[i] = math.ceil(amounts[i] * my_n_moli)
-        else:
+            else : amounts.append(math.ceil(value) * 10)
+        if not(scale):
             amounts = []
             for i in range(self.num_of_species):
                 specie = model.getSpecies(i)
