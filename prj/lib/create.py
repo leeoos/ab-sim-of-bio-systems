@@ -435,7 +435,7 @@ def make_lmp(**kwargs):
         thermo_style2,
         
         "\n# dumps atoms information",
-        "dump 1 "+ to_dump + " custom 10 dump."+short_filename+" id x y z type \n"]
+        "dump 1 "+ to_dump + " custom 10 dump."+short_filename+".out id x y z type \n"]
 
         f.writelines(["%s\n" % item  for item in sim3])
 
