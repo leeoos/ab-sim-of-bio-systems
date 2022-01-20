@@ -3,17 +3,33 @@
 
 #       --- CLASSES ---
 from functools import reduce
+from decimal import Decimal
 import math
 import os
 
-# get info of the species
+def fexp(number):
+    (sign, digits, exponent) = Decimal(number).as_tuple()
+    return len(digits) + exponent - 1
+
+# get info about the
+class CompartmentClass:
+
+    def __init__(self,model) -> None:
+        if (model.getNumCompartments()) > 1 :
+            print('Error: incompatible document : too much compartments')
+            os._exit(2)
+        self.csize = int(model.getCompartment(0).getSize())
+        pass
+
+
+# get info about the species
 class SpeciesClass:
 
     def __init__(self, model) -> None:
         self.num_of_species = model.getNumSpecies() 
         self.species = self.__get_species(model)
-        self.amounts = self.__compute_amounts(model)   
-        self.total_amount = int(reduce(lambda x,y: x+y, self.amounts))
+        self.initial_atoms = self.__compute_initial_atoms(model)   
+        self.total_initial_atoms = int(reduce(lambda x,y: x+y, self.initial_atoms))
         self.dictionary = self.__make_dict_of_species(model)
         pass
 
@@ -23,24 +39,25 @@ class SpeciesClass:
             species.append(model.getSpecies(i).getId())
         return species
 
-    def __compute_amounts(self, model):
-        amounts = []; scale = True
+    def __compute_initial_atoms(self, model):
+        C = CompartmentClass(model)
+        initial_atoms = []; scale = True
         for i in range(self.num_of_species):
             specie = model.getSpecies(i)
             value = specie.getInitialConcentration()
             if (math.isnan(value)) : scale = False; break
-            else : amounts.append(math.ceil(value) * 10)
+            else : initial_atoms.append(math.ceil(value* pow(10,-(fexp(value)))) * C.csize)
         if not(scale):
-            amounts = []
+            initial_atoms = []
             for i in range(self.num_of_species):
                 specie = model.getSpecies(i)
                 value = specie.getInitialAmount()
                 if (math.isnan(value)) : 
                     print('Error: no initial ammount/concentration given')
-                    os._exit(2)
+                    os._exit(3)
                 else :
-                    amounts.append(value)
-        return amounts
+                    initial_atoms.append(value)
+        return initial_atoms
 
     # entry structure: 'species_id': (atom_id, 'compartment_id', )
     def __make_dict_of_species(self, model):
@@ -49,12 +66,13 @@ class SpeciesClass:
             specie = model.getSpecies(i)
             dic_of_species[specie.getId()]= (  s_atom_id,
                                                 specie.getCompartment(),
-                                                int(self.amounts[i])
+                                                int(self.initial_atoms[i])
                                             ) 
             s_atom_id += 1
         return dic_of_species
 
-# get info of the reactions
+
+# get info about the reactions
 class ReactionClass:
 
     def __init__(self, model) -> None:
@@ -178,7 +196,7 @@ def make_lmp(**kwargs):
     if(lmp_file_path == None) :  lmp_file_path = 'in.lmp'
 
     if (sbml_model_file == None) :
-        test = 'test.xml'
+        test = 'Giordano2020.xml'
         if(os.path.isfile('/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test)) : 
             sbml_model_file = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test #Alharbi2020
         else: 
@@ -210,8 +228,8 @@ def make_lmp(**kwargs):
             print(prod,"("+str(S.dictionary[prod][0])+")",  end=' ')
         print()
         print("\n")
-    
 
+ 
     with open(lmp_file_path, 'w') as f:
         f.write('# Agent Based Simulation Of Biological Systems\n\n')
     
@@ -234,7 +252,7 @@ def make_lmp(**kwargs):
 
         f.writelines(["%s\n" % item  for item in set_up])
 
-        if (S.total_amount == 0 ) : expeted_types = S.num_of_species + 1
+        if (S.total_initial_atoms == 0 ) : expeted_types = S.num_of_species + 1
         else : expeted_types = S.num_of_species
     
         # SIMULATION BOX PROPERTIES
@@ -278,7 +296,7 @@ def make_lmp(**kwargs):
             r_seed = r_seed + 1
             f.write("\n")
 
-        if (S.total_amount == 0): 
+        if (S.total_initial_atoms == 0): 
             f.write("create_atoms"+"    "+ str(S.num_of_species+1) +" random 5 "
                         + str(r_seed) + " box  # ghost atom to inizialize velocity")
             r_seed = r_seed + 1
@@ -288,7 +306,7 @@ def make_lmp(**kwargs):
         for i in list(S.dictionary.values()) :
             f.write("mass " + str(i[0]) + " 1.0")
             f.write("\n")
-        if (S.total_amount == 0 ) : 
+        if (S.total_initial_atoms == 0 ) : 
             f.write("mass " + str(S.num_of_species+1) + " 1.0")
             f.write("\n")
 
@@ -297,21 +315,22 @@ def make_lmp(**kwargs):
         mortals = "" 
         for i in range (0, R.num_of_reactions):
             new_group = "group agents" + str(i+1) + " type " ; types = ""
-            toDie = False 
-
+            check = len(R.groups_of_reactants[i]) 
             if (R.groups_of_reactants[i] == []) : pass
             else :
-                if (R.groups_of_products[i] == []) : toDie = True 
+                if (R.groups_of_products[i] == []) : check = check - 1 
                 for k in R.groups_of_reactants[i]:
                     types = types + str(S.dictionary[k][0]) + " "
-                    if toDie : mortals = mortals + " " + str(S.dictionary[k][0]) 
-                f.write(new_group + types)
-                f.write("\n")
+                    if (check == 0) : 
+                        mortals = mortals + " " + str(S.dictionary[k][0]) 
+                if (check != 0) : 
+                    f.write(new_group + types)
+                    f.write("\n")
 
         if (mortals != "") :
             f.write("group mortals type"+ mortals +" \n") 
 
-        if (S.total_amount == 0) :
+        if (S.total_initial_atoms == 0) :
             f.write("group to_dump empty\n")
  
         ag_prop = [
@@ -370,7 +389,7 @@ def make_lmp(**kwargs):
         thermo_style2 = "thermo_style custom step temp pe "
         counter = "variable counter"
 
-        if (S.total_amount == 0) :
+        if (S.total_initial_atoms == 0) :
             f.write("compute t   all property/atom type\n")
             to_dump = "to_dump"
             righttype = ("# righttype : boolean = true if atom I is of type between 1 and " 
@@ -383,16 +402,20 @@ def make_lmp(**kwargs):
         f.write("compute hb0 all property/atom nbonds \n\n")
 
         for i in range(1, R.num_of_reactions+1):
-            if (R.groups_of_reactants[i-1] == []) : pass
+            if (len(R.groups_of_reactants[i-1]) <= 0) : pass
+            if (len(R.groups_of_reactants[i-1]) <= 1 
+                    and R.groups_of_products[i-1] == []) : pass
             else:
                 f.write("compute hb"+str(i)+" agents"+str(i)+" property/atom nbonds\n")
                 f.write("compute cb"+str(i)+" agents"+str(i)+" reduce sum c_hb"+str(i)+"\n")
 
                 thermo_style1 = thermo_style1 + "c_cb"+str(i) +" "
-                counter = counter + str(i) + " equal ceil(c_cb" + str(i) + ")\nvariable counter"
+                counter = counter + str(i) + " equal ceil(c_cb" + str(i) + ")\nvariable counter" #da malati
                 thermo_style2 = thermo_style2 + "v_counter" + str(i) + " "
 
                 f.write("\n")
+
+        if (counter == "variable counter" ) : counter = "# no bonds detected "
 
         sim3 = [
         "\n# this lines are necessary to insure that the “hasbond” and 'newatoms' ",
@@ -432,24 +455,28 @@ def make_lmp(**kwargs):
 
         for i in range(len(R.groups_of_products)):
             deposit = []
-            if (R.groups_of_products[i] == []) : pass
+            if (len(R.groups_of_reactants[i]) <= 1 
+                    and R.groups_of_products[i] == []) :  pass
             else :
+                if (R.groups_of_products[i] == []) : deposit.append(0)
                 for p in R.groups_of_products[i] :
-                    if (R.groups_of_reactants[i] == []):
-                        f.write("fix deposit"+str(i+1)+" all deposit 1 "+str(S.dictionary[p][0])
+                    if (R.groups_of_reactants[i] == []) :
+                        f.write("fix deposit"+str(i+1)+" all deposit 1 "+ str(S.dictionary[p][0])
                                     +" 1 5748 region box near 2.0\n")
+                        deposit.append(0)
                     else:
                         atom = S.dictionary[p][0]
-                        deposit.append("'fix deposit"+str(atom)+" all deposit ${newatoms"+str(i+1)+"} "+str(atom)
+                        deposit.append("'fix deposit"+ str(atom) +" all deposit ${newatoms"+ str(i+1) +"} "+ str(atom)
                                        +" 1 5748 region box near 2.0' &")
-                f.write("variable newatoms"+str(i+1)+" equal floor(${counter"+str(i+1)+"}/2)\n")
-                f.write("if '${counter"+str(i+1)+"} > 0' then &\n")
-                deposit[len(deposit)-1] = deposit[len(deposit)-1][:-1]
-                f.writelines(["%s\n" % item  for item in deposit])
-                #f.write("'fix deposit"+str(i+1)+" all deposit ${newatoms"+str(i+1)+"} "+str(S.dictionary[p][0])
-                #            +" 1 5748 region box near 2.0' \n")
 
-        if(S.total_amount == 0):
+                if (deposit[0] == 0) : pass
+                else:
+                    f.write("variable newatoms"+str(i+1)+" equal floor(${counter"+str(i+1)+"}/2)\n")
+                    f.write("if '${counter"+str(i+1)+"} > 0' then &\n")
+                    deposit[len(deposit)-1] = deposit[len(deposit)-1][:-1]
+                    f.writelines(["%s\n" % item  for item in deposit])
+
+        if(S.total_initial_atoms == 0):
             to_dump = ("# assing all atoms of the right kind to the dump group\n"
                     +"group to_dump dynamic all every 1 var righttype \n")
         else: to_dump = ""
@@ -458,7 +485,7 @@ def make_lmp(**kwargs):
         if (mortals != "") :
             mortals = "# delate some atoms in mortals every N timestamps \n"
             mortals = mortals + "# fix ID group-ID evaporate N M region-ID seed \n"
-            mortals = mortals + "fix death mortals evaporate 100 1 box "+ str(r_seed)
+            mortals = mortals + "fix death mortals evaporate 100 1 box "+ str(r_seed) +"\n"
                             
         
         loop2 = [
@@ -478,7 +505,7 @@ def make_lmp(**kwargs):
 
         mortals,
         
-        "\n# jump to loop lable until step > 0 ",
+        "# jump to loop lable until step > 0 ",
         "next step",
         "jump SELF loop\n",
         
@@ -488,7 +515,7 @@ def make_lmp(**kwargs):
         "# check on input variables",
         "variable duration equal ${loop_len}*100",
         "print ''",
-        "print 'Starting Atoms: "+ str(S.total_amount) +" ' ",
+        "print 'Starting Atoms: "+ str(S.total_initial_atoms) +" ' ",
         "print 'Duration: ${duration}'",
         "print 'ALL DONE' \n"]
 
