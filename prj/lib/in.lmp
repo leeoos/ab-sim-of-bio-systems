@@ -33,7 +33,7 @@ newton on off
 
 # define simulation box
 region      box block 0 30 0 30 0 30
-create_box  3 box  bond/types 3 extra/bond/per/atom 100
+create_box  8 box  bond/types 13 extra/bond/per/atom 100
 
 # create simulation walls
 fix xwalls all wall/reflect xlo EDGE xhi EDGE
@@ -43,17 +43,39 @@ fix zwalls all wall/reflect zlo EDGE zhi EDGE
 
 #       --- AGENTS PROPRETIES AND FORCE FIELDS ---
 # creation of atoms of types in randoms spots inside the box
-create_atoms    1 random 10 5783 box  # Normal_cells     | reactant |      | product  |
-create_atoms    2 random 10 5784 box  # Tumor_cells     | reactant |      | product  |
-create_atoms    3 random 20 5785 box  # Immune_cells     | reactant |      | product  |
+create_atoms    1 random 10 5783 box  # Susceptible     | reactant |
+create_atoms    2 random 4 5784 box  # Infected     | reactant |      | product  |
+create_atoms    3 random 4 5785 box  # Diagnosed     | reactant |      | product  |
+create_atoms    4 random 2 5786 box  # Ailing     | reactant |      | product  |
+create_atoms    5 random 4 5787 box  # Recognized     | reactant |      | product  |
+create_atoms    6 random 0 5788 box  # Threatened     | reactant |      | product  |
+create_atoms    7 random 0 5789 box  # Healed      | product  |
+create_atoms    8 random 0 5790 box  # Extinct      | product  |
 
 # atoms mass
 mass 1 1.0
 mass 2 1.0
 mass 3 1.0
+mass 4 1.0
+mass 5 1.0
+mass 6 1.0
+mass 7 1.0
+mass 8 1.0
 
 # assing atoms to agents groups
-group mortals type 1 2 3 
+group agents1 type 1 
+group agents2 type 2 
+group agents3 type 2 
+group agents4 type 2 
+group agents5 type 3 
+group agents6 type 3 
+group agents7 type 4 
+group agents8 type 4 
+group agents9 type 4 
+group agents10 type 5 
+group agents11 type 5 
+group agents12 type 6 
+group agents13 type 6 
 
 # force fields style and coefficient
 pair_style zero 5.0
@@ -93,10 +115,49 @@ fix 2 all langevin 300.0 300.0 10.0 904297
 # and total number of bonds btw all atoms
 compute hb0 all property/atom nbonds 
 
+compute hb1 agents1 property/atom nbonds
+compute cb1 agents1 reduce sum c_hb1
+
+compute hb2 agents2 property/atom nbonds
+compute cb2 agents2 reduce sum c_hb2
+
+compute hb3 agents3 property/atom nbonds
+compute cb3 agents3 reduce sum c_hb3
+
+compute hb4 agents4 property/atom nbonds
+compute cb4 agents4 reduce sum c_hb4
+
+compute hb5 agents5 property/atom nbonds
+compute cb5 agents5 reduce sum c_hb5
+
+compute hb6 agents6 property/atom nbonds
+compute cb6 agents6 reduce sum c_hb6
+
+compute hb7 agents7 property/atom nbonds
+compute cb7 agents7 reduce sum c_hb7
+
+compute hb8 agents8 property/atom nbonds
+compute cb8 agents8 reduce sum c_hb8
+
+compute hb9 agents9 property/atom nbonds
+compute cb9 agents9 reduce sum c_hb9
+
+compute hb10 agents10 property/atom nbonds
+compute cb10 agents10 reduce sum c_hb10
+
+compute hb11 agents11 property/atom nbonds
+compute cb11 agents11 reduce sum c_hb11
+
+compute hb12 agents12 property/atom nbonds
+compute cb12 agents12 reduce sum c_hb12
+
+compute hb13 agents13 property/atom nbonds
+compute cb13 agents13 reduce sum c_hb13
+
 
 # this lines are necessary to insure that the “hasbond” and 'newatoms' 
 # variables are current when the group command invokes it.
-thermo_style custom step temp pe 
+thermo_style custom step temp pe c_cb1 c_cb2 c_cb3 c_cb4 c_cb5 c_cb6 c_cb7 c_cb8 c_cb9 c_cb10 c_cb11 c_cb12 c_cb13 
 run 0
 
 # hasbond : boolean = true if atom I has a bond with atom J
@@ -104,13 +165,25 @@ variable hasbond atom 'c_hb0 > 0.0'
 
 
 # counter : int = N total number of bonds in the sim
-# no bonds detected
+variable counter1 equal ceil(c_cb1)
+variable counter2 equal ceil(c_cb2)
+variable counter3 equal ceil(c_cb3)
+variable counter4 equal ceil(c_cb4)
+variable counter5 equal ceil(c_cb5)
+variable counter6 equal ceil(c_cb6)
+variable counter7 equal ceil(c_cb7)
+variable counter8 equal ceil(c_cb8)
+variable counter9 equal ceil(c_cb9)
+variable counter10 equal ceil(c_cb10)
+variable counter11 equal ceil(c_cb11)
+variable counter12 equal ceil(c_cb12)
+variable counter13 equal ceil(c_cb13)
 
 # print themo info every timestep
-thermo_style custom step temp pe 
+thermo_style custom step temp pe v_counter1 v_counter2 v_counter3 v_counter4 v_counter5 v_counter6 v_counter7 v_counter8 v_counter9 v_counter10 v_counter11 v_counter12 v_counter13 
 
 # dumps atoms information
-dump 1 all custom 10 dump.Alharbi2020 id x y z type 
+dump 1 all custom 10 dump.Giordano2020 id x y z type 
 
 
 #       --- LOOP---
@@ -121,9 +194,45 @@ variable step loop ${loop_len}   # loop length
 # create new atoms only if new bonds have been made
 # the num of new atoms is linked to the number of new bonds as follow:
 # fix ID group-ID deposit N type M seed keyword values
-fix deposit1 all deposit 1 1 1 5748 region box near 2.0
-fix deposit3 all deposit 1 2 1 5748 region box near 2.0
-fix deposit5 all deposit 1 3 1 5748 region box near 2.0
+variable newatoms1 equal floor(${counter1}/2)
+if '${counter1} > 0' then &
+'fix deposit2 all deposit ${newatoms1} 2 1 5748 region box near 2.0' 
+variable newatoms2 equal floor(${counter2}/2)
+if '${counter2} > 0' then &
+'fix deposit3 all deposit ${newatoms2} 3 1 5748 region box near 2.0' 
+variable newatoms3 equal floor(${counter3}/2)
+if '${counter3} > 0' then &
+'fix deposit4 all deposit ${newatoms3} 4 1 5748 region box near 2.0' 
+variable newatoms4 equal floor(${counter4}/2)
+if '${counter4} > 0' then &
+'fix deposit7 all deposit ${newatoms4} 7 1 5748 region box near 2.0' 
+variable newatoms5 equal floor(${counter5}/2)
+if '${counter5} > 0' then &
+'fix deposit5 all deposit ${newatoms5} 5 1 5748 region box near 2.0' 
+variable newatoms6 equal floor(${counter6}/2)
+if '${counter6} > 0' then &
+'fix deposit7 all deposit ${newatoms6} 7 1 5748 region box near 2.0' 
+variable newatoms7 equal floor(${counter7}/2)
+if '${counter7} > 0' then &
+'fix deposit5 all deposit ${newatoms7} 5 1 5748 region box near 2.0' 
+variable newatoms8 equal floor(${counter8}/2)
+if '${counter8} > 0' then &
+'fix deposit7 all deposit ${newatoms8} 7 1 5748 region box near 2.0' 
+variable newatoms9 equal floor(${counter9}/2)
+if '${counter9} > 0' then &
+'fix deposit6 all deposit ${newatoms9} 6 1 5748 region box near 2.0' 
+variable newatoms10 equal floor(${counter10}/2)
+if '${counter10} > 0' then &
+'fix deposit6 all deposit ${newatoms10} 6 1 5748 region box near 2.0' 
+variable newatoms11 equal floor(${counter11}/2)
+if '${counter11} > 0' then &
+'fix deposit7 all deposit ${newatoms11} 7 1 5748 region box near 2.0' 
+variable newatoms12 equal floor(${counter12}/2)
+if '${counter12} > 0' then &
+'fix deposit8 all deposit ${newatoms12} 8 1 5748 region box near 2.0' 
+variable newatoms13 equal floor(${counter13}/2)
+if '${counter13} > 0' then &
+'fix deposit7 all deposit ${newatoms13} 7 1 5748 region box near 2.0' 
 
 # assing all atoms that have a bond to the garbage group
 group garbage dynamic all every 1 var hasbond
@@ -137,9 +246,6 @@ run 100
 # delate all atoms in garbage
 delete_atoms group garbage bond yes mol yes compress no
 
-# delate some atoms in mortals every N timestamps 
-# fix ID group-ID evaporate N M region-ID seed 
-fix death mortals evaporate 100 1 box 5786
 
 # jump to loop lable until step > 0 
 next step
@@ -151,7 +257,7 @@ label break
 # check on input variables
 variable duration equal ${loop_len}*100
 print ''
-print 'Starting Atoms: 40 ' 
+print 'Starting Atoms: 24 ' 
 print 'Duration: ${duration}'
 print 'ALL DONE' 
 
