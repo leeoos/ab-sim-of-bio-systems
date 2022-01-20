@@ -183,7 +183,7 @@ variable counter13 equal ceil(c_cb13)
 thermo_style custom step temp pe v_counter1 v_counter2 v_counter3 v_counter4 v_counter5 v_counter6 v_counter7 v_counter8 v_counter9 v_counter10 v_counter11 v_counter12 v_counter13 
 
 # dumps atoms information
-dump 1 all custom 10 dump.Giordano2020 id x y z type 
+dump 1 all custom 10 dump.Giordano2020.out id x y z type 
 
 
 #       --- LOOP---
