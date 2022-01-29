@@ -1,3 +1,4 @@
+# /bin/python3
 # This scrip create a LAMMPS input file 
 # based on the SBM model given in input
 
@@ -7,17 +8,13 @@ from decimal import Decimal
 import math
 import os
 
-def fexp(number):
-    (sign, digits, exponent) = Decimal(number).as_tuple()
-    return len(digits) + exponent - 1
-
 # get info about the
 class CompartmentClass:
 
     def __init__(self,model) -> None:
-        if (model.getNumCompartments()) > 1 :
-            print('Error: incompatible document : too much compartments')
-            os._exit(2)
+        #if (model.getNumCompartments()) > 1 :
+            #print('Error: incompatible document : too much compartments')
+            #os._exit(2)
         self.csize = int(model.getCompartment(0).getSize())
         pass
 
@@ -33,6 +30,10 @@ class SpeciesClass:
         self.dictionary = self.__make_dict_of_species(model)
         pass
 
+    def __fexp(self, number):
+        (sign, digits, exponent) = Decimal(number).as_tuple()
+        return len(digits) + exponent - 1
+
     def __get_species(self, model):
         species = []
         for i in range(self.num_of_species):
@@ -46,7 +47,7 @@ class SpeciesClass:
             specie = model.getSpecies(i)
             value = specie.getInitialConcentration()
             if (math.isnan(value)) : scale = False; break
-            else : initial_atoms.append(math.ceil(value* pow(10,-(fexp(value)))) * C.csize)
+            else : initial_atoms.append(math.ceil(value* pow(10,-(self.__fexp(value)))) * C.csize)
         if not(scale):
             initial_atoms = []
             for i in range(self.num_of_species):
@@ -139,6 +140,7 @@ class ReactionClass:
 #           --- FUNCTIONS ---
 import os.path
 import time
+import json
 from libsbml import *
 
 #       -- Check SBML file  --
@@ -196,7 +198,7 @@ def make_lmp(**kwargs):
     if(lmp_file_path == None) :  lmp_file_path = 'in.lmp'
 
     if (sbml_model_file == None) :
-        test = 'Giordano2020.xml'
+        test = 'Model.xml'
         if(os.path.isfile('/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test)) : 
             sbml_model_file = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test #Alharbi2020
         else: 
@@ -211,24 +213,30 @@ def make_lmp(**kwargs):
     time.sleep(1)
     
     # new objects of model's classes such as SpeciesClass, ReactionClass ...
+    C = CompartmentClass(model)
     S = SpeciesClass(model)
     R = ReactionClass(model)
 
-    print()
-    print(S.dictionary)
-
-    print("\nReactions Map")
-    for i in range(R.num_of_reactions):
-        print(R.reactions[i], ": ", '\n')
-        print("         ", end=' ')
-        for react in R.groups_of_reactants[i] :
-            print(react,"("+str(S.dictionary[react][0])+")",  end=' ')
-        print("     -->       ", end='')
-        for prod in R.groups_of_products[i] :
-            print(prod,"("+str(S.dictionary[prod][0])+")",  end=' ')
-        print()
-        print("\n")
-
+    # analyze the sbml document and dump the info 
+    analysis = 'sbml.analysis'
+    with open(analysis, 'w') as m:
+        m.write("Analysis of SBML file: "+ short_filename)
+        m.write("\n\n       Simulation Enviroment: \n\n")
+        m.write("Number  of Compartments: "+ str(C.csize)+ "\n")
+        m.write("\n\n       Species: \n\n")
+        for key, value in S.dictionary.items(): 
+            m.write('%s :   %s   %s  %s\n' % (key, value[0], value[1], value[2]))
+        m.write("\n\n       Reactions Map: \n")
+        for i in range(R.num_of_reactions):
+            m.write("\n" + R.reactions[i]+ ": ")
+            for react in R.groups_of_reactants[i] :
+                m.write(react+"("+str(S.dictionary[react][0])+")")
+            m.write("        -->        ")
+            for prod in R.groups_of_products[i] :
+                m.write(prod+"("+str(S.dictionary[prod][0])+")")
+        m.write("\n")
+        m.flush()
+        os.fsync(m)
  
     with open(lmp_file_path, 'w') as f:
         f.write('# Agent Based Simulation Of Biological Systems\n\n')
@@ -524,5 +532,10 @@ def make_lmp(**kwargs):
         f.flush()
         os.fsync(f)
 
+        print("\nALL DONE\n")
+
+import logging
+import sys
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 if __name__ == '__main__':
     make_lmp()

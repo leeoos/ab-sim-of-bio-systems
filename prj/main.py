@@ -1,3 +1,5 @@
+# /bin/python3
+
 from fileinput import filename
 from io import SEEK_CUR
 from tkinter import Radiobutton, Tk     
@@ -5,15 +7,16 @@ from tkinter.filedialog import askopenfilename
 from webbrowser import get
 
 #       -- Basic GUI --
+import os
+import os.path
+import time
+
 def get_file():
     Tk().withdraw() 
     print("\nSelect a SBLM Model")
     filename = askopenfilename()
+    if filename == () : os._exit(3)
     return filename
-
-import os
-import os.path
-import time
 
 from lib.create import *
 
@@ -38,7 +41,7 @@ def run_():
             print("Type q to exit\n")
             str_in = input("> ")
 
-            if (str_in == '1') :
+            if (str_in == '1'):
                 print("\nThe actual rand seed is: 5783 \n")
                 print("Type a new number if you want to change it\n")
                 print("Press Enter to continue with the default\n")

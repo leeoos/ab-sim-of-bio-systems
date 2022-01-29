@@ -1,0 +1,6 @@
+#! /bin/bash
+
+path_to_this_file=$( realpath "$0"  ) && dirname "$path_to_this_file"} 1> /dev/null
+path_to_this_file=${path_to_this_file%/*}
+
+python3 ./prj/main.py 
