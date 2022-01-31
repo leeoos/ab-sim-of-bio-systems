@@ -65,7 +65,7 @@ class SpeciesClass:
         dic_of_species = {} ; s_atom_id = 1
         for i in range(self.num_of_species):
             specie = model.getSpecies(i)
-            dic_of_species[specie.getId()]= (  s_atom_id,
+            dic_of_species[specie.getId()]= (   s_atom_id,
                                                 specie.getCompartment(),
                                                 int(self.initial_atoms[i])
                                             ) 
@@ -140,7 +140,6 @@ class ReactionClass:
 #           --- FUNCTIONS ---
 import os.path
 import time
-import json
 from libsbml import *
 
 #       -- Check SBML file  --
@@ -219,14 +218,16 @@ def make_lmp(**kwargs):
 
     # analyze the sbml document and dump the info 
     analysis = 'sbml.analysis'
+    spec_table = []
     with open(analysis, 'w') as m:
         m.write("Analysis of SBML file: "+ short_filename)
-        m.write("\n\n       Simulation Enviroment: \n\n")
-        m.write("Number  of Compartments: "+ str(C.csize)+ "\n")
-        m.write("\n\n       Species: \n\n")
+        m.write("\n\nSpecies: \n\n")
+        #m.write("{:15} {:6} {:15} {:15}\n".format("Species id", "Atom id", "Compartment", "Amount")) 
         for key, value in S.dictionary.items(): 
-            m.write('%s :   %s   %s  %s\n' % (key, value[0], value[1], value[2]))
-        m.write("\n\n       Reactions Map: \n")
+            spec_table.append(key)
+            #m.write("{:6s} {:6s} {:6s} {:6s}".format(str(key), str(value[0]), str(value[1]), str(value[2])))
+            #m.write("\n")
+        m.write("\n\nReactions Map: \n")
         for i in range(R.num_of_reactions):
             m.write("\n" + R.reactions[i]+ ": ")
             for react in R.groups_of_reactants[i] :
@@ -319,7 +320,6 @@ def make_lmp(**kwargs):
             f.write("\n")
 
         f.write("\n# assing atoms to agents groups\n")
-        
         mortals = "" 
         for i in range (0, R.num_of_reactions):
             new_group = "group agents" + str(i+1) + " type " ; types = ""
@@ -411,7 +411,7 @@ def make_lmp(**kwargs):
 
         for i in range(1, R.num_of_reactions+1):
             if (len(R.groups_of_reactants[i-1]) <= 0) : pass
-            if (len(R.groups_of_reactants[i-1]) <= 1 
+            elif (len(R.groups_of_reactants[i-1]) <= 1 
                     and R.groups_of_products[i-1] == []) : pass
             else:
                 f.write("compute hb"+str(i)+" agents"+str(i)+" property/atom nbonds\n")
