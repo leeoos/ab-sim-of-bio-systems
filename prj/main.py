@@ -70,7 +70,6 @@ def run_():
             print("Type q to exit\n")
 
         if (str_in != 'q'): str_in = input("> ")
-
         
         if (str_in == '1') : 
             os.system('less '+PATH+'/'+lmp_dir+'/in.lmp')

@@ -7,6 +7,7 @@ from functools import reduce
 from decimal import Decimal
 import math
 import os
+import re
 
 # get info about the
 class CompartmentClass:
@@ -17,7 +18,6 @@ class CompartmentClass:
             #os._exit(2)
         self.csize = int(model.getCompartment(0).getSize())
         pass
-
 
 # get info about the species
 class SpeciesClass:
@@ -71,7 +71,6 @@ class SpeciesClass:
                                             ) 
             s_atom_id += 1
         return dic_of_species
-
 
 # get info about the reactions
 class ReactionClass:
@@ -218,26 +217,24 @@ def make_lmp(**kwargs):
 
     # analyze the sbml document and dump the info 
     analysis = 'sbml.analysis'
-    spec_table = []
     with open(analysis, 'w') as m:
-        m.write("Analysis of SBML file: "+ short_filename)
-        m.write("\n\nSpecies: \n\n")
-        #m.write("{:15} {:6} {:15} {:15}\n".format("Species id", "Atom id", "Compartment", "Amount")) 
-        for key, value in S.dictionary.items(): 
-            spec_table.append(key)
-            #m.write("{:6s} {:6s} {:6s} {:6s}".format(str(key), str(value[0]), str(value[1]), str(value[2])))
-            #m.write("\n")
-        m.write("\n\nReactions Map: \n")
-        for i in range(R.num_of_reactions):
-            m.write("\n" + R.reactions[i]+ ": ")
-            for react in R.groups_of_reactants[i] :
-                m.write(react+"("+str(S.dictionary[react][0])+")")
-            m.write("        -->        ")
-            for prod in R.groups_of_products[i] :
-                m.write(prod+"("+str(S.dictionary[prod][0])+")")
-        m.write("\n")
+        m.write("Analysis of SBML file: "+ short_filename +"\n")
+        m.write("\n\nSpecies \n\n")
+        m.write("{:<20s} {:<20s} {:<25s} {:<30s}\n\n".format("Species id", "Atom id", "Compartment", "Amount")) 
+        for key, value in S.dictionary.items():
+            specie = str(key); atomid = str(value[0]); comp = str(value[1]); amo = str(value[2]) 
+            m.write("{:<20s} {:<20s} {:<25s} {:<30s}\n".format(specie, atomid, comp, amo))
+            m.write("\n")
+        m.write("\nReactions Map \n\n")
+        react = [(R.groups_of_reactants[i], R.groups_of_products[i]) for i in range(R.num_of_reactions)]
+        for i in range(R.num_of_reactions): 
+            m.write("-"+ R.reactions[i] +": \n\n")
+            m.write("\t\t{:<20s}  ->  {:<20s}\n".format(str(react[i][0]), str(react[i][1])))
+            m.write("\n\n")
+        m.write("\n\n")
         m.flush()
         os.fsync(m)
+
  
     with open(lmp_file_path, 'w') as f:
         f.write('# Agent Based Simulation Of Biological Systems\n\n')
@@ -537,5 +534,6 @@ def make_lmp(**kwargs):
 import logging
 import sys
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
 if __name__ == '__main__':
     make_lmp()
