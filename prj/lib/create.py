@@ -211,11 +211,11 @@ def make_lmp(**kwargs):
     time.sleep(1)
     
     # new objects of model's classes such as SpeciesClass, ReactionClass ...
-    C = CompartmentClass(model)
     S = SpeciesClass(model)
     R = ReactionClass(model)
 
     # analyze the sbml document and dump the info 
+    os.system('rm sbml.analysis 2> /dev/null')
     analysis = 'sbml.analysis'
     with open(analysis, 'w') as m:
         m.write("Analysis of SBML file: "+ short_filename +"\n")
@@ -235,7 +235,7 @@ def make_lmp(**kwargs):
         m.flush()
         os.fsync(m)
 
- 
+    os.system('rm '+ lmp_file_path +' 2> /dev/null')
     with open(lmp_file_path, 'w') as f:
         f.write('# Agent Based Simulation Of Biological Systems\n\n')
     

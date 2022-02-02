@@ -21,7 +21,6 @@ then
 fi
 
 # remove previous dump file whit same name to avoid errors
-rm sbml.analysis 2> /dev/null
 rm dump.* 2> /dev/null
 rm log.* 2> /dev/null
 rm ${path_to_this_file}/output/$2/sbml.analysis 2> /dev/null
@@ -89,7 +88,7 @@ mkdir -p ${path_to_this_file}/output/$2
 
 # move the output files to the correct directory
 mv $dump ${path_to_this_file}/output/$2/    2> /dev/null
-mv sbml.analysis ${path_to_this_file}/output/$2/    2> /dev/null
+mv sbml.* ${path_to_this_file}/output/$2/   2> /dev/null
 mv dump.* ${path_to_this_file}/output/$2/   2> /dev/null
 mv log.* ${path_to_this_file}/output/$2/    2> /dev/null
 
