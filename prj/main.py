@@ -49,7 +49,7 @@ def run_():
                 n_seed = input("> ")
                 os.system('clear')
 
-                print("\nThe current simulation time is set to 50000 \n")
+                print("\nThe current simulation time is set to 500 steps \n")
                 print("Type a new number if you want to change it\n")
                 print("Press Enter to continue with the default\n")
                 s_time = input("> ")

@@ -13,14 +13,31 @@
 
     <listOfCompartments>
       <compartment id="c1" spatialDimensions="3" size="1" units="litre" constant="true"/>
+      <compartment id="c1" spatialDimensions="3" size="1" units="litre" constant="true"/>
     </listOfCompartments>
 
     <listOfSpecies>
       <species id="s1" compartment="c1" initialAmount="5" initialConcentration="1" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s1" compartment="c2" initialAmount="5" initialConcentration="1" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="s2" compartment="c1" initialAmount="5" initialConcentration="1" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="s3" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="s4" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       <species id="s5" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s6" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s7" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s8" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s9" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s10" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s11" compartment="c1" initialAmount="5" initialConcentration="1" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s12" compartment="c1" initialAmount="5" initialConcentration="1" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s13" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s14" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s15" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s16" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s17" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s18" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s19" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      <species id="s20" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
     </listOfSpecies>
 
     <listOfParameters>
@@ -32,17 +49,70 @@
       <reaction id="r1" reversible="false" fast="false">
         <listOfReactants>
           <speciesReference species="s1" constant="true"/>
-          <speciesReference species="s4" constant="true"/>
-          <speciesReference species="s3" constant="true"/>
         </listOfReactants>
       </reaction>
 
-      <reaction id="r1" reversible="false" fast="false">
-        <listOfReactants>
+      <reaction id="r2" reversible="false" fast="false">
+        <listOfProducts>
           <speciesReference species="s2" constant="true"/>
+        </listOfProducts>
+      </reaction>
+
+      <reaction id="r3" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="s3" constant="true"/>
         </listOfReactants>
         <listOfProducts>
+          <speciesReference species="s4" constant="true"/>
+        </listOfProducts>
+      </reaction>
+
+      <reaction id="r4" reversible="false" fast="false">
+        <listOfReactants>
           <speciesReference species="s5" constant="true"/>
+          <speciesReference species="s6" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="s7" constant="true"/>
+        </listOfProducts>
+      </reaction>
+
+      <reaction id="r5" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="s8" constant="true"/>
+          <speciesReference species="s9" constant="true"/>
+          <speciesReference species="s10" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="s11" constant="true"/>
+        </listOfProducts>
+      </reaction>
+
+      <reaction id="r6" reversible="false" fast="false">
+        <listOfProducts>
+          <speciesReference species="s12" constant="true"/>
+          <speciesReference species="s13" constant="true"/>
+        </listOfProducts>
+      </reaction>
+
+      <reaction id="r7" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="s14" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="s15" constant="true"/>
+          <speciesReference species="s16" constant="true"/>
+        </listOfProducts>
+      </reaction>
+
+      <reaction id="r8" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="s17" constant="true"/>
+          <speciesReference species="s18" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="s19" constant="true"/>
+          <speciesReference species="s20" constant="true"/>
         </listOfProducts>
       </reaction>
 

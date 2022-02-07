@@ -7,15 +7,16 @@ from functools import reduce
 from decimal import Decimal
 import math
 import os
-import re
 
 # get info about the
 class CompartmentClass:
 
     def __init__(self,model) -> None:
-        #if (model.getNumCompartments()) > 1 :
-            #print('Error: incompatible document : too much compartments')
-            #os._exit(2)
+        if (model.getNumCompartments()) > 1 :
+            print(  "Warning: all the agents will be put in the same compartment."
+                    +" If appears to be agents of the same species in different compartment "
+                    +" they will be considered as tow diffrent kind of agents with the same proprety "
+                )
         self.csize = int(model.getCompartment(0).getSize())
         pass
 
@@ -24,7 +25,6 @@ class SpeciesClass:
 
     def __init__(self, model) -> None:
         self.num_of_species = model.getNumSpecies() 
-        self.species = self.__get_species(model)
         self.initial_atoms = self.__compute_initial_atoms(model)   
         self.total_initial_atoms = int(reduce(lambda x,y: x+y, self.initial_atoms))
         self.dictionary = self.__make_dict_of_species(model)
@@ -33,12 +33,6 @@ class SpeciesClass:
     def __fexp(self, number):
         (sign, digits, exponent) = Decimal(number).as_tuple()
         return len(digits) + exponent - 1
-
-    def __get_species(self, model):
-        species = []
-        for i in range(self.num_of_species):
-            species.append(model.getSpecies(i).getId())
-        return species
 
     def __compute_initial_atoms(self, model):
         C = CompartmentClass(model)
@@ -65,7 +59,7 @@ class SpeciesClass:
         dic_of_species = {} ; s_atom_id = 1
         for i in range(self.num_of_species):
             specie = model.getSpecies(i)
-            dic_of_species[specie.getId()]= (   s_atom_id,
+            dic_of_species[specie.getId()] = (  s_atom_id,
                                                 specie.getCompartment(),
                                                 int(self.initial_atoms[i])
                                             ) 
@@ -76,7 +70,6 @@ class SpeciesClass:
 class ReactionClass:
 
     def __init__(self, model) -> None:
-        self.model = model
         self.num_of_reactions = model.getNumReactions()
         self.reactions = self.__get_reactions(model)
 
@@ -196,7 +189,7 @@ def make_lmp(**kwargs):
     if(lmp_file_path == None) :  lmp_file_path = 'in.lmp'
 
     if (sbml_model_file == None) :
-        test = 'Model.xml'
+        test = 'test.xml'
         if(os.path.isfile('/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test)) : 
             sbml_model_file = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test #Alharbi2020
         else: 
@@ -214,6 +207,8 @@ def make_lmp(**kwargs):
     S = SpeciesClass(model)
     R = ReactionClass(model)
 
+    print(S.dictionary)
+
     # analyze the sbml document and dump the info 
     os.system('rm sbml.analysis 2> /dev/null')
     analysis = 'sbml.analysis'
@@ -222,7 +217,7 @@ def make_lmp(**kwargs):
         m.write("\n\nSpecies \n\n")
         m.write("{:<20s} {:<20s} {:<25s} {:<30s}\n\n".format("Species id", "Atom id", "Compartment", "Amount")) 
         for key, value in S.dictionary.items():
-            specie = str(key); atomid = str(value[0]); comp = str(value[1]); amo = str(value[2]) 
+            specie = str(key); atomid = str(value[0]); comp = str(value[1]); amo = str(value[2])
             m.write("{:<20s} {:<20s} {:<25s} {:<30s}\n".format(specie, atomid, comp, amo))
             m.write("\n")
         m.write("\nReactions Map \n\n")
@@ -456,7 +451,6 @@ def make_lmp(**kwargs):
         "# fix ID group-ID deposit N type M seed keyword values"]
 
         f.writelines(["%s\n" % item  for item in loop1])
-
 
         for i in range(len(R.groups_of_products)):
             deposit = []

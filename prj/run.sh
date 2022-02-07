@@ -23,7 +23,6 @@ fi
 # remove previous dump file whit same name to avoid errors
 rm dump.* 2> /dev/null
 rm log.* 2> /dev/null
-rm ${path_to_this_file}/output/$2/sbml.analysis 2> /dev/null
 rm ${path_to_this_file}/output/$2/dump.* 2> /dev/null
 rm ${path_to_this_file}/output/$2/log.* 2> /dev/null
 
@@ -77,8 +76,9 @@ then
     usage   "Error: Missing input file"
 fi
 
+echo "simulation in progress ..."
 # run lammps input script with apropriate symulation time and random seed
-env OMP_NUM_THREADS=16 lmp -sf omp -in $1 -var time_value $time_value -var num_atoms $num_atoms
+env OMP_NUM_THREADS=16 lmp -sf omp -in $1 -var time_value $time_value -var num_atoms $num_atoms 1> /dev/null
 
 # to be on the safe side
 sleep 1
