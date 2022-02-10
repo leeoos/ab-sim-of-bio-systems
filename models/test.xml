@@ -13,31 +13,76 @@
 
     <listOfCompartments>
       <compartment id="c1" spatialDimensions="3" size="1" units="litre" constant="true"/>
-      <compartment id="c1" spatialDimensions="3" size="1" units="litre" constant="true"/>
+      <compartment id="c2" spatialDimensions="3" size="1" units="litre" constant="true"/>
     </listOfCompartments>
 
     <listOfSpecies>
       <species id="s1" compartment="c1" initialAmount="5" initialConcentration="1" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      <species id="s1" compartment="c2" initialAmount="5" initialConcentration="1" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+            
       <species id="s2" compartment="c1" initialAmount="5" initialConcentration="1" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s3" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s4" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s5" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s6" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s7" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s8" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s9" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s10" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s11" compartment="c1" initialAmount="5" initialConcentration="1" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s12" compartment="c1" initialAmount="5" initialConcentration="1" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s13" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s14" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s15" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s16" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s17" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s18" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s19" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
       <species id="s20" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
+      <species id="s21" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
+      <species id="s22" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
+      <species id="s23" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
+      <species id="s24" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
+      <species id="s25" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
+      <species id="s26" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
+      <species id="s27" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
+      <species id="s28" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
+      <species id="s29" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
+      <species id="s30" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
+      <species id="s31" compartment="c1" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+      
+      <species id="s32" compartment="c2" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+
+      <species id="s33" compartment="c2" initialAmount="5" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
+
     </listOfSpecies>
 
     <listOfParameters>
@@ -46,7 +91,7 @@
 
     <listOfReactions>
 
-      <reaction id="r1" reversible="false" fast="false">
+      <reaction id="r1" reversible="false" fast="false"  compartment="c1">
         <listOfReactants>
           <speciesReference species="s1" constant="true"/>
         </listOfReactants>
@@ -113,6 +158,74 @@
         <listOfProducts>
           <speciesReference species="s19" constant="true"/>
           <speciesReference species="s20" constant="true"/>
+        </listOfProducts>
+      </reaction>
+
+      <reaction id="r9" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="s21" constant="true"/>
+          <speciesReference species="s22" constant="true"/>
+          <speciesReference species="s23" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="s24" constant="true"/>
+          <speciesReference species="s25" constant="true"/>
+        </listOfProducts>
+      </reaction>
+
+      <reaction id="r10" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="s26" constant="true"/>
+          <speciesReference species="s27" constant="true"/>
+        </listOfReactants>
+      </reaction>
+
+      <reaction id="r11" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="s1" constant="true"/>
+          <speciesReference species="s2" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="s7" constant="true"/>
+        </listOfProducts>
+      </reaction>
+    
+      <reaction id="r12" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="s7" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="s28" constant="true"/>
+        </listOfProducts>
+      </reaction>
+
+      <reaction id="r13" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="s29" constant="true"/>
+          <speciesReference species="s30" constant="true"/>
+          <speciesReference species="s31" constant="true"/>
+        </listOfReactants>
+      </reaction>
+
+      <reaction id="r14" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="s1" constant="true"/>
+          <speciesReference species="s32" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="s33" constant="true"/>
+        </listOfProducts>
+      </reaction>
+
+      <reaction id="r15" reversible="false" fast="false">
+        <listOfReactants>
+          <speciesReference species="s17" constant="true"/>
+          <speciesReference species="s18" constant="true"/>
+        </listOfReactants>
+        <listOfProducts>
+          <speciesReference species="s19" constant="true"/>
+          <speciesReference species="s20" constant="true"/>
+          <speciesReference species="s21" constant="true"/>
         </listOfProducts>
       </reaction>
 

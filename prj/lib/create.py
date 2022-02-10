@@ -5,6 +5,7 @@
 #       --- CLASSES ---
 from functools import reduce
 from decimal import Decimal
+from random import randint
 import math
 import os
 
@@ -13,9 +14,10 @@ class CompartmentClass:
 
     def __init__(self,model) -> None:
         if (model.getNumCompartments()) > 1 :
-            print(  "Warning: all the agents will be put in the same compartment."
-                    +" If appears to be agents of the same species in different compartment "
-                    +" they will be considered as tow diffrent kind of agents with the same proprety "
+            print(  "\nWarning: all the agents will be in the same compartment. "
+                    +"If agents of the same species are in different compartment "
+                    +"they will be considered as two diffrent kind of agents "
+                    +"this means that the system may behave unpredictably\n"
                 )
         self.csize = int(model.getCompartment(0).getSize())
         pass
@@ -54,15 +56,27 @@ class SpeciesClass:
                     initial_atoms.append(value)
         return initial_atoms
 
-    # entry structure: 'species_id': (atom_id, 'compartment_id', )
+    # entry structure: 'species_id':[
+    #                                   0: atom_id, 
+    #                                   1: 'compartment_id',
+    #                                   2: initial_amount, 
+    #                                   3: groth_rate, 
+    #                                   4: deposit_counter 
+    #                               ]
     def __make_dict_of_species(self, model):
         dic_of_species = {} ; s_atom_id = 1
         for i in range(self.num_of_species):
             specie = model.getSpecies(i)
-            dic_of_species[specie.getId()] = (  s_atom_id,
+            initial_atoms_amount = int(self.initial_atoms[i])
+            growth_rate = randint(1, 10)
+            deposit_counter = 0
+            dic_of_species[specie.getId()] = [  
+                                                s_atom_id,
                                                 specie.getCompartment(),
-                                                int(self.initial_atoms[i])
-                                            ) 
+                                                initial_atoms_amount,
+                                                growth_rate,
+                                                deposit_counter
+                                            ] 
             s_atom_id += 1
         return dic_of_species
 
@@ -70,49 +84,26 @@ class SpeciesClass:
 class ReactionClass:
 
     def __init__(self, model) -> None:
-        self.num_of_reactions = model.getNumReactions()
-        self.reactions = self.__get_reactions(model)
-
-        __reac_tuple = self.__group_reactants(model)
-        self.groups_of_reactants = __reac_tuple[0]
-        self.reactants = __reac_tuple[1]
-
-        __prod_tuple = self.__group_products(model)
-        self.groups_of_products = __prod_tuple[0]
-        self.products = __prod_tuple[1]
-
+        self.reactions = self.__get_reaction_info(model)
+        self.num_of_reactions = len(self.reactions)
         self.combinations = self.__arrange_reactions()
         pass
 
-    def __get_reactions(self, model):
-        reactions = []
-        for rex in range(self.num_of_reactions):
-            reactions.append(model.getReaction(rex).getId())
-        return reactions
-
-    def __group_reactants(self, model) :
-        reactants = []
-        groups_of_reactants = []
-        for i in range(self.num_of_reactions):
+    def __get_reaction_info(self, model):
+        self.reactants = set(); self.products = set()
+        reactions = {}
+        for i in range(model.getNumReactions()):
             rxn = model.getReaction(i)
             rri = [] # reatants of reaction i
             for j in range(rxn.getNumReactants()):
                 reactant = rxn.getReactant(j).getSpecies()
-                rri.append(reactant) ; reactants.append(reactant)
-            groups_of_reactants.append(rri)
-        return (groups_of_reactants, reactants)
-
-    def __group_products(self, model) :
-        products = []
-        groups_of_products= []
-        for i in range(self.num_of_reactions):
-            rxn = model.getReaction(i)
-            pri = []
-            for j in range(rxn.getNumProducts()):
-                reactant = rxn.getProduct(j).getSpecies()
-                pri.append(reactant) ; products.append(reactant)
-            groups_of_products.append(pri)
-        return (groups_of_products, products)
+                rri.append(reactant) ; self.reactants.add(reactant)
+            pri = [] # products of reaction i
+            for k in range(rxn.getNumProducts()):
+                product = rxn.getProduct(k).getSpecies()
+                pri.append(product) ; self.products.add(product)
+            reactions[rxn.getId()] = (rri, pri)
+        return reactions
 
     # complexity = O(m (n!/k!(n-k)!)) 
     # where m = numb of reactions;
@@ -120,12 +111,12 @@ class ReactionClass:
     #       k = 2
     def __arrange_reactions(self):
         combo = []
-        for r_id in range(0, self.num_of_reactions):
-            rri = len(self.groups_of_reactants[r_id])
+        for r_id in list(self.reactions.keys()): 
+            rri = len(self.reactions[r_id][0])
             for i in range(0, rri):
                 for j in range(i+1, rri): 
-                    combo.append((self.groups_of_reactants[r_id][i],
-                                    self.groups_of_reactants[r_id][j]))
+                    combo.append((self.reactions[r_id][0][i],
+                                    self.reactions[r_id][0][j]))
         return combo
 
 
@@ -207,8 +198,6 @@ def make_lmp(**kwargs):
     S = SpeciesClass(model)
     R = ReactionClass(model)
 
-    print(S.dictionary)
-
     # analyze the sbml document and dump the info 
     os.system('rm sbml.analysis 2> /dev/null')
     analysis = 'sbml.analysis'
@@ -221,15 +210,15 @@ def make_lmp(**kwargs):
             m.write("{:<20s} {:<20s} {:<25s} {:<30s}\n".format(specie, atomid, comp, amo))
             m.write("\n")
         m.write("\nReactions Map \n\n")
-        react = [(R.groups_of_reactants[i], R.groups_of_products[i]) for i in range(R.num_of_reactions)]
-        for i in range(R.num_of_reactions): 
-            m.write("-"+ R.reactions[i] +": \n\n")
+        react = [(R.reactions[r_id][0], R.reactions[r_id][1]) for r_id in list(R.reactions.keys())]
+        for r_id, i in zip(list(R.reactions.keys()), range(R.num_of_reactions)):
+            m.write("-"+ r_id +": \n\n")
             m.write("\t\t{:<20s}  ->  {:<20s}\n".format(str(react[i][0]), str(react[i][1])))
             m.write("\n\n")
         m.write("\n\n")
         m.flush()
         os.fsync(m)
-
+        
     os.system('rm '+ lmp_file_path +' 2> /dev/null')
     with open(lmp_file_path, 'w') as f:
         f.write('# Agent Based Simulation Of Biological Systems\n\n')
@@ -274,7 +263,7 @@ def make_lmp(**kwargs):
 
         "# define simulation box",
         "region      box block 0 30 0 30 0 30",
-        "create_box  "+str(expeted_types)+" box  bond/types " + str(len(R.reactants)) + " extra/bond/per/atom 100\n",
+        "create_box  "+str(expeted_types)+" box  bond/types 1 extra/bond/per/atom 100\n", # ATTENZIONE ALL'EXTRA BOND TYPE
 
         "# create simulation walls",
         "fix xwalls all wall/reflect xlo EDGE xhi EDGE",
@@ -312,23 +301,23 @@ def make_lmp(**kwargs):
             f.write("\n")
 
         f.write("\n# assing atoms to agents groups\n")
-        mortals = "" 
-        for i in range (0, R.num_of_reactions):
-            new_group = "group agents" + str(i+1) + " type " ; types = ""
-            check = len(R.groups_of_reactants[i]) 
-            if (R.groups_of_reactants[i] == []) : pass
+        mortals = set() ; agents_counter = 1
+        for r_id in list(R.reactions.keys()): #range (R.num_of_reactions):
+            new_group = "group agents" + str(agents_counter) + " type " ; types = ""
+            only_one = (len(R.reactions[r_id][0]) ==  1)
+            if (R.reactions[r_id][0] == []) : pass
             else :
-                if (R.groups_of_products[i] == []) : check = check - 1 
-                for k in R.groups_of_reactants[i]:
-                    types = types + str(S.dictionary[k][0]) + " "
-                    if (check == 0) : 
-                        mortals = mortals + " " + str(S.dictionary[k][0]) 
-                if (check != 0) : 
+                for i in R.reactions[r_id][0]:
+                    if (only_one ) : mortals.add(str(S.dictionary[i][0]))
+                    else: types = types + str(S.dictionary[i][0]) + " "
+                if (not only_one) : 
                     f.write(new_group + types)
                     f.write("\n")
+            agents_counter += 1
 
-        if (mortals != "") :
-            f.write("group mortals type"+ mortals +" \n") 
+        if (mortals != set()) :
+            mortals = ' '.join(mortals)
+            f.write("group mortals type "+ mortals +" \n") 
 
         if (S.total_initial_atoms == 0) :
             f.write("group to_dump empty\n")
@@ -363,10 +352,11 @@ def make_lmp(**kwargs):
         "# this fix will attempt to create new bond btw atoms of type i and j every N timestep"]
 
         f.writelines(["%s\n" % item  for item in sim1])
-
-        for i, j in zip(R.combinations, range(len(R.combinations))):
-            f.write("fix bond"+str(j+1)+" all bond/create 10 "+ str(S.dictionary[i[0]][0]) +" "+ 
-                                str(S.dictionary[i[1]][0])+ " 1.0 "+ str(j+1) +" prob 0.5 " + str(r_seed))
+        # EDIT TYPE OF BOND AND PROB 
+        for i in R.combinations :
+            b1 = str(S.dictionary[i[0]][0]) ; b2 = str(S.dictionary[i[1]][0])
+            f.write("fix bond_"+ b1 +"_"+ b2 +" all bond/create 10 "+ 
+                        b1 +" "+ b2 +" 1.0 1 prob 0.5 " + str(r_seed))
             r_seed = r_seed + 1
             f.write("\n")
         
@@ -401,19 +391,19 @@ def make_lmp(**kwargs):
 
         f.write("compute hb0 all property/atom nbonds \n\n")
 
-        for i in range(1, R.num_of_reactions+1):
-            if (len(R.groups_of_reactants[i-1]) <= 0) : pass
-            elif (len(R.groups_of_reactants[i-1]) <= 1 
-                    and R.groups_of_products[i-1] == []) : pass
+        cc = 1  #compute counter
+        for r_id in list(R.reactions.keys()): #range(R.num_of_reactions):
+            if (len(R.reactions[r_id][0]) <= 1) :  pass
             else:
-                f.write("compute hb"+str(i)+" agents"+str(i)+" property/atom nbonds\n")
-                f.write("compute cb"+str(i)+" agents"+str(i)+" reduce sum c_hb"+str(i)+"\n")
+                f.write("compute hb"+str(cc)+" agents"+str(cc)+" property/atom nbonds\n")
+                f.write("compute cb"+str(cc)+" agents"+str(cc)+" reduce sum c_hb"+str(cc)+"\n")
 
-                thermo_style1 = thermo_style1 + "c_cb"+str(i) +" "
-                counter = counter + str(i) + " equal ceil(c_cb" + str(i) + ")\nvariable counter" #da malati
-                thermo_style2 = thermo_style2 + "v_counter" + str(i) + " "
+                thermo_style1 = thermo_style1 + "c_cb"+str(cc) +" "
+                counter = counter + str(cc) + " equal ceil(c_cb" + str(cc) + ")\nvariable counter" 
+                thermo_style2 = thermo_style2 + "v_counter" + str(cc) + " "
 
                 f.write("\n")
+            cc += 1
 
         if (counter == "variable counter" ) : counter = "# no bonds detected "
 
@@ -435,7 +425,7 @@ def make_lmp(**kwargs):
         thermo_style2,
         
         "\n# dumps atoms information",
-        "dump 1 "+ to_dump + " custom 10 dump."+short_filename+".out id x y z type \n"]
+        "dump 1 "+ to_dump + " custom 10 dump."+ short_filename +".out id x y z type \n"]
 
         f.writelines(["%s\n" % item  for item in sim3])
 
@@ -452,28 +442,33 @@ def make_lmp(**kwargs):
 
         f.writelines(["%s\n" % item  for item in loop1])
 
-        for i in range(len(R.groups_of_products)):
+        cc = 1  #compute counter
+        for r_id in list(R.reactions.keys()):
             deposit = []
-            if (len(R.groups_of_reactants[i]) <= 1 
-                    and R.groups_of_products[i] == []) :  pass
+            if (R.reactions[r_id][1] == []) :  pass
             else :
-                if (R.groups_of_products[i] == []) : deposit.append(0)
-                for p in R.groups_of_products[i] :
-                    if (R.groups_of_reactants[i] == []) :
-                        f.write("fix deposit"+str(i+1)+" all deposit 1 "+ str(S.dictionary[p][0])
-                                    +" 1 5748 region box near 2.0\n")
+                for p in R.reactions[r_id][1] :
+                    atom = str(S.dictionary[p][0]) +"_"+ str(S.dictionary[p][4])
+                    S.dictionary[p][4] += 1
+                    p_id = str(S.dictionary[p][0])
+                    growth = S.dictionary[p][3]
+                    if (len(R.reactions[r_id][0]) <= 1) :
+                        f.write("fix deposit"+ atom +" all deposit 1 "+ p_id +" "
+                                    + str(growth) +" 5748 region box near 2.0\n")
                         deposit.append(0)
                     else:
-                        atom = S.dictionary[p][0]
-                        deposit.append("'fix deposit"+ str(atom) +" all deposit ${newatoms"+ str(i+1) +"} "+ str(atom)
-                                       +" 1 5748 region box near 2.0' &")
+                        deposit.append("'fix deposit"+ atom +" all deposit ${newatoms"+ str(cc) 
+                                        +"} "+ p_id +" "+ str(growth) +" 5748 region box near 2.0' &")
 
-                if (deposit[0] == 0) : pass
+                if (deposit[0] == 0) :
+                    f.write("\n") ; pass
                 else:
-                    f.write("variable newatoms"+str(i+1)+" equal floor(${counter"+str(i+1)+"}/2)\n")
-                    f.write("if '${counter"+str(i+1)+"} > 0' then &\n")
+                    f.write("variable newatoms"+str(cc)+" equal floor(${counter"+str(cc)+"}/2)\n")
+                    f.write("if '${counter"+str(cc)+"} > 0' then &\n")
                     deposit[len(deposit)-1] = deposit[len(deposit)-1][:-1]
                     f.writelines(["%s\n" % item  for item in deposit])
+                    f.write("\n")
+            cc += 1
 
         if(S.total_initial_atoms == 0):
             to_dump = ("# assing all atoms of the right kind to the dump group\n"
@@ -481,10 +476,11 @@ def make_lmp(**kwargs):
         else: to_dump = ""
 
 
-        if (mortals != "") :
-            mortals = "# delate some atoms in mortals every N timestamps \n"
+        if (mortals != set()) :
+            inhibition = str(randint(1,10))
+            mortals = "# delate M atoms in mortals every N timestamps \n"
             mortals = mortals + "# fix ID group-ID evaporate N M region-ID seed \n"
-            mortals = mortals + "fix death mortals evaporate 100 1 box "+ str(r_seed) +"\n"
+            mortals = mortals + "fix death mortals evaporate "+ inhibition +" 1 box "+ str(r_seed) +"\n"
                             
         
         loop2 = [
