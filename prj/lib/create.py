@@ -230,6 +230,7 @@ def make_lmp(**kwargs):
         "# duration : int = N number of steps for the current run",
         "variable time_value index 50  # default value: 50 loop * 100 steps",
         "variable loop_len equal ${time_value}\n",
+        "variable duration equal ${loop_len}*100",
 
         "# atoms : int = N number of atoms of each type to generate ",
         "# uncomment this lines and substitue the number of atoms",
@@ -429,12 +430,20 @@ def make_lmp(**kwargs):
 
         f.writelines(["%s\n" % item  for item in sim3])
 
+        if (mortals != set()) :
+            inhibition = str(randint(1,10))
+            mortals = "# delate M atoms in mortals every N timestamps \n"
+            mortals = mortals + "# fix ID group-ID evaporate N M region-ID seed \n"
+            mortals = mortals + "fix death mortals evaporate "+ inhibition +" 1 box "+ str(r_seed) +"\n"
+
         # LOOP 
         loop1 = [
         "\n#       --- LOOP---\n",
         
         "label loop",
         "variable step loop ${loop_len}   # loop length\n",
+
+        mortals,
         
         "# create new atoms only if new bonds have been made", 
         "# the num of new atoms is linked to the number of new bonds as follow:",
@@ -473,15 +482,7 @@ def make_lmp(**kwargs):
         if(S.total_initial_atoms == 0):
             to_dump = ("# assing all atoms of the right kind to the dump group\n"
                     +"group to_dump dynamic all every 1 var righttype \n")
-        else: to_dump = ""
-
-
-        if (mortals != set()) :
-            inhibition = str(randint(1,10))
-            mortals = "# delate M atoms in mortals every N timestamps \n"
-            mortals = mortals + "# fix ID group-ID evaporate N M region-ID seed \n"
-            mortals = mortals + "fix death mortals evaporate "+ inhibition +" 1 box "+ str(r_seed) +"\n"
-                            
+        else: to_dump = ""                      
         
         loop2 = [
         "\n# assing all atoms that have a bond to the garbage group",
@@ -497,8 +498,6 @@ def make_lmp(**kwargs):
     
         "# delate all atoms in garbage",
         "delete_atoms group garbage bond yes mol yes compress no\n",
-
-        mortals,
         
         "# jump to loop lable until step > 0 ",
         "next step",
@@ -507,8 +506,7 @@ def make_lmp(**kwargs):
         "# end of loop",
         "label break\n",
         
-        "# check on input variables",
-        "variable duration equal ${loop_len}*100",
+        "# print some useful resumed informations",
         "print ''",
         "print 'Starting Atoms: "+ str(S.total_initial_atoms) +" ' ",
         "print 'Duration: ${duration}'",

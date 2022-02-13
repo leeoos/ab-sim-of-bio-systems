@@ -9,6 +9,9 @@ notes.txt
 prj/models/lammps/output/
 prj/lib/foo/
 
+### VScode ###
+.vscode/
+
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
 
