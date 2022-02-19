@@ -408,7 +408,7 @@ def make_lmp(**kwargs):
             for i in perishable : 
                 toInhibid = toInhibid + " c_atype == "+ str(i) + " || "
             toInhibid = toInhibid[:-4] + ") & \n&& c_akin < 100.0'" 
-            f.write(toInhibid + "\n\n")
+            f.write(toInhibid + "\n")
         else : pass
 
         # compute ghost atoms
@@ -416,7 +416,7 @@ def make_lmp(**kwargs):
         if (S.total_initial_atoms <= 1) :
             if (perishable == set()) :
                 to_write = (
-                    "# comupte which atoms are ghost atoms \n"+
+                    "\n# comupte which atoms are ghost atoms \n"+
                     "# by checking their type \n"+
                     "compute atype all property/atom type \n"
                 )

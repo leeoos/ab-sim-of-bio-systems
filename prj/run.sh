@@ -9,7 +9,7 @@ echo "Type: ${0: -6} -h for help" 1>&2; exit 1; }
 path_to_this_file=$( realpath "$0"  ) && dirname "$path_to_this_file"}
 path_to_this_file=${path_to_this_file%/*}
 ovito=false
-time_value=50
+time_value=10000
 num_atoms=5
 rand=0
 help=false

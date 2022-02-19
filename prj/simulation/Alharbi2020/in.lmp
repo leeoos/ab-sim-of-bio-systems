@@ -3,17 +3,20 @@
 
 #       --- SET UP OF INPUT VARIABLES ---
 
-# duration : int = N number of steps for the current run
-variable time_value index 50  # default value: 50 loop * 100 steps
-variable loop_len equal ${time_value}
-variable duration equal ${loop_len}*100
+# steps : int = number of steps to execute
+variable time_value index 10000  # default value: 10000
+variable steps equal ${time_value}
 
-# atoms : int = N number of atoms of each type to generate 
-# uncomment this lines and substitue the number of atoms
-# in the create_atoms command with this variable 
+# duration : int = simulation steps * dump interval
+#for the current run
+variable duration equal ${steps}*0.1
+
+# uncomment the last 2 lines of this section and
+# substitue the number of atoms in the create_atoms command with ${atoms} 
 # to modify the initial amount of atoms in the simulation;
 # prj/run.sh -h for more info
 # Note: doing so the initial amount will be the same for all atoms types
+# atoms : int = N number of atoms of each type to generate 
 #variable num_atoms index 5
 #variable atoms equal ${num_atoms}
 
@@ -43,18 +46,16 @@ fix zwalls all wall/reflect zlo EDGE zhi EDGE
 
 
 #       --- AGENTS PROPRETIES AND FORCE FIELDS ---
+
 # creation of atoms of types in randoms spots inside the box
-create_atoms    1 random 2 5783 box  # Normal_cells     | reactant |      | product  |
-create_atoms    2 random 0 5784 box  # Tumor_cells     | reactant |      | product  |
-create_atoms    3 random 0 5785 box  # Immune_cells     | reactant |      | product  |
+create_atoms    1 random 1 5783 box  # Normal_cells     | reactant |      | product  |
+create_atoms    2 random 1 5784 box  # Tumor_cells     | reactant |      | product  |
+create_atoms    3 random 2 5785 box  # Immune_cells     | reactant |      | product  |
 
 # atoms mass
 mass 1 1.0
 mass 2 1.0
 mass 3 1.0
-
-# assing atoms to agents groups
-group mortals type 2 3 1 
 
 # force fields style and coefficient
 pair_style zero 5.0
@@ -67,10 +68,10 @@ bond_coeff * 100 1.1
  
 #      --- SIMULATION ---
 
-# set the time step, from now on every time an N
-# appears in the signature of an instruction it should
-# be read as N * 0.1 = number of time steps
-timestep 0.1   # seconds
+# set the time step for the simulation
+# it is directly proportional to the atoms velocity
+# AB-Sim-Of-Bio-Systems/resources/Tesi.pdf for more info
+timestep 0.001   # abstract units : seconds
 
 # this command sets parameters that affect
 # the building of pairwise neighbor lists
@@ -80,11 +81,8 @@ neigh_modify every 10 delay 100
 # print thermodinamic inf every N timesteps
 thermo 100 
 
-# this fix will attempt to create new bond btw atoms of type i and j every N timestep
-# fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values
 
 # set velocity for all atoms
-fix 3 all temp/rescale 10 200.0 300.0 0.02 0.5
 velocity all create 300.0 4928459 rot yes dist gaussian 
 
 # perform plain time integration 
@@ -93,69 +91,60 @@ velocity all create 300.0 4928459 rot yes dist gaussian
 fix kin all nve
 fix lgv all langevin 300.0 300.0 10.0 904297
 
-# compute if atoms has a bonds
-# and total number of bonds btw all atoms
-compute hb0 all property/atom nbonds 
+
+#        ---COMPUTES--- 
+
+# comupe which atoms should be inhibid 
+# by checking their type and kin energy 
+compute atype all property/atom type 
+compute akin all ke/atom 
+
+# toInhibid : Boolean = true if atom is
+# perishable and has a low kin value 
+variable toInhibid atom '( c_atype == 1 ||  c_atype == 2 ||  c_atype == 3) & 
+&& c_akin < 100.0'
+
+#        ---DINAMICS GROUPS--- 
+# note: this section could be empty
+
+# assing some perishable atoms to the inhibit group 
+# update group every N timesteps 
+group inhibid dynamic all every 10 var toInhibid 
 
 
-# this lines are necessary to insure that the “hasbond” and 'newatoms' 
-# variables are current when the group command invokes it.
-thermo_style custom step temp pe 
-run 0
+#        ---DUMP FILE--- 
 
-# hasbond : boolean = true if atom I has a bond with atom J
-variable hasbond atom 'c_hb0 > 0.0'
-
-
-# counter : int = total number of bonds in the sim
-# no bonds detected
-
-# print themo info every timestep
-thermo_style custom step temp pe 
-
-# dumps atoms information
+# dump atoms information every 10 timestep
 # dump ID group-ID style N file args
 dump d1 all custom 10 dump.Alharbi2020.out id x y z type 
 
-# delate M atoms in mortals every N timestamps
-# fix ID group-ID evaporate N M region-ID seed
-fix death mortals evaporate 100 1 box 5786
 
-# insert a single atom or molecule into the simulation domain
-# every N timesteps until M atoms or molecules have been inserted
-# the num of new atoms is linked to the number of new bonds as follow:
-# fix ID group-ID deposit M type N seed keyword values
-fix deposit1_0 all deposit ${duration} 1 1000 5748 region box near 2.0
+#        ---DEPOSIT--- 
+
+# insert a single atom or molecule into the simulation domain 
+# every N timesteps until M atoms or molecules have been inserted 
+# fix ID group-ID deposit M type N seed keyword values 
+fix deposit1_0 all deposit ${duration} 1 485 5786 region box near 2.0
+fix deposit2_0 all deposit ${duration} 2 484 5787 region box near 2.0
+fix deposit3_0 all deposit ${duration} 3 305 5788 region box near 2.0
 
 
-#       --- LOOP---
+#        ---RUN--- 
+# uncomment this line to append
+# new values on dump file in case 
+# it is not updating properly 
+# dump_modify d1 append yes 
 
-label loop
-variable step loop ${loop_len}   # loop length
+# allow atoms lost during the simulation 
+thermo_modify lost ignore 
+run ${steps} every 100 &
+   'delete_atoms group inhibid compress no' 
 
-# assing all atoms that have a bond to the garbage group
-# update group every N timesteps
-group garbage dynamic all every 1 var hasbond
+#        ---END--- 
 
-# append new values on dump file
-dump_modify d1 append yes
-
-# perform n steps in loop
-run 10
-
-# delate all atoms in garbage
-delete_atoms group garbage bond yes mol yes compress no
-
-# jump to loop lable until step > 0 
-next step
-jump SELF loop
-
-# end of loop
-label break
-
-# print some useful resumed informations
-print ''
+# print some useful informations 
+print '' 
+print 'INFO' 
 print 'Starting Atoms: 4 ' 
-print 'Duration: ${duration}'
+print 'Duration: ${duration}' 
 print 'ALL DONE' 
-
