@@ -5,6 +5,7 @@
 #       --- CLASSES ---
 from functools import reduce
 from decimal import Decimal
+from mimetypes import init
 from random import randint
 import math
 import os
@@ -13,14 +14,23 @@ import os
 class CompartmentClass:
 
     def __init__(self,model) -> None:
-        if (model.getNumCompartments()) > 1 :
-            print(  "\nWarning: all the agents will be in the same compartment. "
-                    +"If agents of the same species are in different compartment "
-                    +"they will be considered as two diffrent kind of agents "
-                    +"this means that the system may behave unpredictably\n"
+        self.num_comp = model.getNumCompartments()
+        if (self.num_comp) > 1 :
+            print(  "\nWarning: more than one compartment detected. "
+                    +"This may affect the correct execution of the simulation. "
+                    +"Consult AB-Sim-Of-Bio-Systems/resources/Tesi.pdf for more info "
                 )
-        self.csize = int(model.getCompartment(0).getSize())
+        self.csize_dict = self.__make_ccsize_dict(model)
         pass
+
+    def __make_ccsize_dict(self, model):
+        csize_dict = {}
+        for i in range(self.num_comp):
+            comp = model.getCompartment(i)
+            csize = comp.getSize()
+            if (math.isnan(csize)) : csize = 1
+            csize_dict[comp.getId()] = csize
+        return csize_dict
 
 # get info about the species
 class SpeciesClass:
@@ -42,8 +52,9 @@ class SpeciesClass:
         for i in range(self.num_of_species):
             specie = model.getSpecies(i)
             value = specie.getInitialConcentration()
+            csize = C.csize_dict[specie.getCompartment()] 
             if (math.isnan(value)) : scale = False; break
-            else : initial_atoms.append(math.ceil(value* pow(10,-(self.__fexp(value)))) * C.csize)
+            else : initial_atoms.append(math.ceil(value* pow(10,-(self.__fexp(value)))) * int(csize))
         if not(scale):
             initial_atoms = []
             for i in range(self.num_of_species):
@@ -53,7 +64,7 @@ class SpeciesClass:
                     print('Error: no initial ammount/concentration given')
                     os._exit(3)
                 else :
-                    initial_atoms.append(value)
+                    initial_atoms.append(value)     ## CHECK!!!
         return initial_atoms
 
     # entry structure: 'species_id':[
@@ -68,7 +79,7 @@ class SpeciesClass:
         for i in range(self.num_of_species):
             specie = model.getSpecies(i)
             initial_atoms_amount = int(self.initial_atoms[i])
-            growth_rate = randint(1, 10)
+            growth_rate = randint(100, 500)
             deposit_counter = 0
             dic_of_species[specie.getId()] = [  
                                                 s_atom_id,
@@ -180,7 +191,7 @@ def make_lmp(**kwargs):
     if(lmp_file_path == None) :  lmp_file_path = 'in.lmp'
 
     if (sbml_model_file == None) :
-        test = 'test.xml'
+        test = 'Tests/complete.xml'
         if(os.path.isfile('/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test)) : 
             sbml_model_file = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test #Alharbi2020
         else: 
@@ -223,30 +234,32 @@ def make_lmp(**kwargs):
     with open(lmp_file_path, 'w') as f:
         f.write('# Agent Based Simulation Of Biological Systems\n\n')
     
-        # SET UP OF INPUT VARIABLES
+        ###     SET UP OF INPUT VARIABLES       ###
         set_up =[
         "\n#       --- SET UP OF INPUT VARIABLES ---\n",
 
-        "# duration : int = N number of steps for the current run",
-        "variable time_value index 50  # default value: 50 loop * 100 steps",
-        "variable loop_len equal ${time_value}\n",
-        "variable duration equal ${loop_len}*100",
+        "# steps : int = number of steps to execute",
+        "variable time_value index 10000  # default value: 10000",
+        "variable steps equal ${time_value}\n",
 
-        "# atoms : int = N number of atoms of each type to generate ",
-        "# uncomment this lines and substitue the number of atoms",
-        "# in the create_atoms command with this variable ",
+        "# duration : int = simulation steps * dump interval",
+        "#for the current run",
+        "variable duration equal ${steps}*0.1\n",
+
+        "# uncomment the last 2 lines of this section and",
+        "# substitue the number of atoms in the create_atoms command with ${atoms} ",
         "# to modify the initial amount of atoms in the simulation;",
         "# prj/run.sh -h for more info",
         "# Note: doing so the initial amount will be the same for all atoms types",
+        "# atoms : int = N number of atoms of each type to generate ",
         "#variable num_atoms index 5",
         "#variable atoms equal ${num_atoms}\n"]
-
         f.writelines(["%s\n" % item  for item in set_up])
 
-        if (S.total_initial_atoms == 0 ) : expeted_types = S.num_of_species + 1
-        else : expeted_types = S.num_of_species
+        if (S.total_initial_atoms <= 1 ) : expected_types = S.num_of_species + 1
+        else : expected_types = S.num_of_species
     
-        # SIMULATION BOX PROPERTIES
+        ###      SIMULATION BOX PROPERTIES      ###
         sim_box = [
         "\n#       --- SIMULATION BOX PROPERTIES ---\n",
 
@@ -264,17 +277,16 @@ def make_lmp(**kwargs):
 
         "# define simulation box",
         "region      box block 0 30 0 30 0 30",
-        "create_box  "+str(expeted_types)+" box  bond/types 1 extra/bond/per/atom 100\n", # ATTENZIONE ALL'EXTRA BOND TYPE
+        "create_box  "+str(expected_types)+" box  bond/types 1 extra/bond/per/atom 100\n", # ATTENZIONE ALL'EXTRA BOND TYPE
 
         "# create simulation walls",
         "fix xwalls all wall/reflect xlo EDGE xhi EDGE",
         "fix ywalls all wall/reflect ylo EDGE yhi EDGE",
         "fix zwalls all wall/reflect zlo EDGE zhi EDGE\n"]
-
         f.writelines(["%s\n" % item  for item in sim_box])
 
-        # AGENTS PROPRETIES AND FORCE FIELDS
-        f.write("\n#       --- AGENTS PROPRETIES AND FORCE FIELDS ---\n")
+        ###      AGENTS PROPRETIES AND FORCE FIELDS     ###
+        f.write("\n#       --- AGENTS PROPRETIES AND FORCE FIELDS ---\n\n")
         f.write("# creation of atoms of types in randoms spots inside the box\n")
         
         for k in list(S.dictionary.keys()):
@@ -286,42 +298,45 @@ def make_lmp(**kwargs):
                         
             r_seed = r_seed + 1
             f.write("\n")
-
-        if (S.total_initial_atoms == 0): 
-            f.write("create_atoms"+"    "+ str(S.num_of_species+1) +" random 5 "
+        
+        # in case there are 1 or less atom at the beginning
+        # create ghost atoms to inizialize velocity
+        if (S.total_initial_atoms <= 1): 
+            f.write("create_atoms"+"    "+ str(S.num_of_species+1) +" random 2 "
                         + str(r_seed) + " box  # ghost atom to inizialize velocity")
             r_seed = r_seed + 1
             f.write("\n")
+        else : pass
 
         f.write("\n# atoms mass\n")
         for i in list(S.dictionary.values()) :
             f.write("mass " + str(i[0]) + " 1.0")
             f.write("\n")
-        if (S.total_initial_atoms == 0 ) : 
-            f.write("mass " + str(S.num_of_species+1) + " 1.0")
+        
+        # assign mass to ghost atoms
+        if (S.total_initial_atoms <= 1 ) : 
+            f.write("mass " + str(S.num_of_species+1) + " 0.5   # ghost atom")
             f.write("\n")
+        else : pass
 
-        f.write("\n# assing atoms to agents groups\n")
-        mortals = set() ; agents_counter = 1
-        for r_id in list(R.reactions.keys()): #range (R.num_of_reactions):
-            new_group = "group agents" + str(agents_counter) + " type " ; types = ""
-            only_one = (len(R.reactions[r_id][0]) ==  1)
-            if (R.reactions[r_id][0] == []) : pass
-            else :
-                for i in R.reactions[r_id][0]:
-                    if (only_one ) : mortals.add(str(S.dictionary[i][0]))
-                    else: types = types + str(S.dictionary[i][0]) + " "
-                if (not only_one) : 
-                    f.write(new_group + types)
-                    f.write("\n")
-            agents_counter += 1
+        # make a set of perishible atoms
+        perishable = set()
+        for r_id in list(R.reactions.keys()): 
+            if (len(R.reactions[r_id][0]) ==  1) :
+                key = R.reactions[r_id][0][0]
+                perishable.add(S.dictionary[key][0])
+            else : pass
 
-        if (mortals != set()) :
-            mortals = ' '.join(mortals)
-            f.write("group mortals type "+ mortals +" \n") 
-
-        if (S.total_initial_atoms == 0) :
+        # create a grup to dump in which ghost atoms are not incuded
+        # and one (ghost) in which are, so they can be easly delated
+        if (S.total_initial_atoms <= 1) :
+            f.write(
+                "\n# create a grup to dump in which ghost atoms are not incuded \n" +
+                "# and one in which are, so they can be easly delated\n"
+            )
             f.write("group to_dump empty\n")
+            f.write("group ghost type "+ str(S.num_of_species+1) +"\n")
+        else : pass
  
         ag_prop = [
         "\n# force fields style and coefficient",
@@ -331,29 +346,32 @@ def make_lmp(**kwargs):
         "# bond style and coefficients",
         "bond_style  harmonic",
         "bond_coeff * 100 1.1\n"]
-
         f.writelines(["%s\n" % item  for item in ag_prop])
         
-        # SIMULATION 
+        ###      SIMULATION         ###
         sim1 = [
         " \n#      --- SIMULATION ---\n",
 
-        "# set time steps ",
-        "timestep 0.001   # seconds\n",
+        "# set the time step for the simulation",
+        "# it is directly proportional to the atoms velocity",
+        "# AB-Sim-Of-Bio-Systems/resources/Tesi.pdf for more info",
+        "timestep 0.001   # abstract units : seconds\n",
         
-        "# This command sets parameters that affect",
+        "# this command sets parameters that affect",
         "# the building of pairwise neighbor lists",
         "neighbor 0.001 bin",
         "neigh_modify every 10 delay 100\n",
         
         "# print thermodinamic inf every N timesteps",
-        "thermo 100 \n",
-        
-        "# fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values",
-        "# this fix will attempt to create new bond btw atoms of type i and j every N timestep"]
-
+        "thermo 100 \n"]
         f.writelines(["%s\n" % item  for item in sim1])
-        # EDIT TYPE OF BOND AND PROB 
+        
+        if (len(R.combinations) > 0) : 
+            f.write("# this fix will attempt to create new bond btw atoms of type i and j every N timestep\n")
+            f.write("# fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values\n")
+        else : pass
+        
+        # TODO : EDIT TYPE OF BOND AND PROB 
         for i in R.combinations :
             b1 = str(S.dictionary[i[0]][0]) ; b2 = str(S.dictionary[i[1]][0])
             f.write("fix bond_"+ b1 +"_"+ b2 +" all bond/create 10 "+ 
@@ -368,93 +386,140 @@ def make_lmp(**kwargs):
         "# perform plain time integration ",
         "# to update position and velocity",
         "# and simulate Brownioan motion",
-        "fix 1 all nve",
-        "fix 2 all langevin 300.0 300.0 10.0 904297\n",
-        
-        "# compute if atoms has a bonds",
-        "# and total number of bonds btw all atoms"]
+        "fix kin all nve",
+        "fix lgv all langevin 300.0 300.0 10.0 904297\n",
 
+        ###     COMPUTES        ###
+        "\n#        ---COMPUTES--- "]
         f.writelines(["%s\n" % item  for item in sim2])
 
-        thermo_style1 = "thermo_style custom step temp pe "
-        thermo_style2 = "thermo_style custom step temp pe "
-        counter = "variable counter"
+        # compute perishable atoms
+        if not(perishable == set()) :
+            to_write = (
+                "\n# comupe which atoms should be inhibid \n" +
+                "# by checking their type and kin energy \n" +
+                "compute atype all property/atom type \n" +
+                "compute akin all ke/atom \n\n" +
+                "# toInhibid : Boolean = true if atom is\n" +
+                "# perishable and has a low kin value \n"
+            )
+            f.write(to_write)
+            toInhibid = "variable toInhibid atom '("
+            for i in perishable : 
+                toInhibid = toInhibid + " c_atype == "+ str(i) + " || "
+            toInhibid = toInhibid[:-4] + ") & \n&& c_akin < 100.0'" 
+            f.write(toInhibid + "\n\n")
+        else : pass
 
-        if (S.total_initial_atoms == 0) :
-            f.write("compute t   all property/atom type\n")
+        # compute ghost atoms
+        to_dump = "all"
+        if (S.total_initial_atoms <= 1) :
+            if (perishable == set()) :
+                to_write = (
+                    "# comupte which atoms are ghost atoms \n"+
+                    "# by checking their type \n"+
+                    "compute atype all property/atom type \n"
+                )
+                f.write(to_write)
             to_dump = "to_dump"
-            righttype = ("# righttype : boolean = true if atom I is of type between 1 and " 
-                        + str(S.num_of_species) + 
-                        "\nvariable righttype atom 'c_t < "+ str(S.num_of_species+1) +"'\n")
+            to_write = (
+                "\n# isToDump : boolean = true if atom I is of type between 1 and " +
+                str(S.num_of_species) + 
+                "\nvariable isToDump atom 'c_atype < "+ str(S.num_of_species+1) +"'\n" 
+            )
+            f.write(to_write)
         else: 
-            righttype = ""
             to_dump = "all"
-
-        f.write("compute hb0 all property/atom nbonds \n\n")
-
-        cc = 1  #compute counter
-        for r_id in list(R.reactions.keys()): #range(R.num_of_reactions):
-            if (len(R.reactions[r_id][0]) <= 1) :  pass
-            else:
-                f.write("compute hb"+str(cc)+" agents"+str(cc)+" property/atom nbonds\n")
-                f.write("compute cb"+str(cc)+" agents"+str(cc)+" reduce sum c_hb"+str(cc)+"\n")
-
-                thermo_style1 = thermo_style1 + "c_cb"+str(cc) +" "
-                counter = counter + str(cc) + " equal ceil(c_cb" + str(cc) + ")\nvariable counter" 
-                thermo_style2 = thermo_style2 + "v_counter" + str(cc) + " "
-
-                f.write("\n")
-            cc += 1
-
-        if (counter == "variable counter" ) : counter = "# no bonds detected "
-
-        sim3 = [
-        "\n# this lines are necessary to insure that the “hasbond” and 'newatoms' ",
-        "# variables are current when the group command invokes it.",          
-        thermo_style1,
-        "run 0",
-
-        "\n# hasbond : boolean = true if atom I has a bond with atom J",
-        "variable hasbond atom 'c_hb0 > 0.0'",
-
-        righttype,
-
-        "\n# counter : int = N total number of bonds in the sim",
-        counter[:counter.rfind('\n')],
         
-        "\n# print themo info every timestep",
-        thermo_style2,
-        
-        "\n# dumps atoms information",
-        "dump 1 "+ to_dump + " custom 10 dump."+ short_filename +".out id x y z type \n"]
+        # compute interactions
+        if (len(R.combinations) > 0) :
+            if ((S.total_initial_atoms >= 1) and (perishable == set())) :
+                f.write("\n# compute the atom type for each atom \n")
+                f.write("compute atype all property/atom type \n\n")
+            to_write = (
+                "\n# compute number of bonds for each atoms \n"+
+                "compute nbond all property/atom nbonds \n\n" +
+                "# compute type of bond present in the \n" +
+                "# simulation at the current timestep \n"
+                "compute btype all property/local btype \n"
+                "\n# this lines are necessary to ensure that the compute \n" +
+                "# reduce reference is current when invoked.\n" +
+                "thermo_style custom step temp pe # To Insert ===> compute reduce \n" +
+                "run 0\n"
+            )
+            f.write(to_write)
+            toDelate = "\nvariable toDelate atom '("
+            next_line = 1
+            for r_id in list(R.reactions.keys()):
+                nbond = int(len(R.reactions[r_id][0])/2)
+                for atype in (R.reactions[r_id][0]) :
+                    if (next_line % 3 != 0):
+                        toDelate = (
+                            toDelate + "c_atype == "+ str(S.dictionary[atype][0]) 
+                            +" && " + "c_nbond >= " + str(nbond) + ") || ("
+                        )
+                    else :
+                        toDelate = (
+                            toDelate + "c_atype == "+ str(S.dictionary[atype][0]) 
+                            +" && " + "c_nbond >= " + str(nbond) + ") & \n|| ("
+                        )
+                    next_line += 1
+            toDelate = toDelate[:-4] + "' \n"
+            f.write(toDelate)
+        else : pass
+    
+        ###      DINAMICS GROUPS       ###
+        f.write("\n\n#        ---DINAMICS GROUPS--- \n")
+        f.write("# note: this section could be empty\n")
+       
+        # update garbage dynamic group
+        if (len(R.combinations) > 0) :
+            to_write = (
+                "\n# assing all atoms that have shold be delated to  \n"+
+                "# the garbage group and update it every N timesteps \n"+
+                "group garbage dynamic all every 10 var toDelate \n" 
+            )
+            delate_garbage = "delete_atoms group garbage bond yes mol yes compress no"
+            f.write(to_write)
+        else : delate_garbage = ""
+       
+        if not(perishable == set()) :
+            to_write = (
+                "\n# assing some perishable atoms to the inhibit group \n"+
+                "# update group every N timesteps \n"+ 
+                "group inhibid dynamic all every 10 var toInhibid \n"
+            )
+            delate_perish = "delete_atoms group inhibid compress no"
+            f.write(to_write)
+        else : delate_perish = ""
 
-        f.writelines(["%s\n" % item  for item in sim3])
+        # dump all atoms exept ghost atoms
+        if(S.total_initial_atoms <= 1):
+            to_write = (
+                "\n# assing all atoms of the correct type to the 'to-dump' group\n"+
+                "group to_dump dynamic all every 10 var isToDump \n"
+            )
+            f.write(to_write)
+        else: pass
 
-        if (mortals != set()) :
-            inhibition = str(randint(1,10))
-            mortals = "# delate M atoms in mortals every N timestamps \n"
-            mortals = mortals + "# fix ID group-ID evaporate N M region-ID seed \n"
-            mortals = mortals + "fix death mortals evaporate "+ inhibition +" 1 box "+ str(r_seed) +"\n"
+        ###      DUMP FILE       ###
+        f.write("\n\n#        ---DUMP FILE--- \n\n")
 
-        # LOOP 
-        loop1 = [
-        "\n#       --- LOOP---\n",
-        
-        "label loop",
-        "variable step loop ${loop_len}   # loop length\n",
+        # make a dump file to sote sim info every 10 timestep 
+        f.write("# dump atoms information every 10 timestep\n")
+        f.write("# dump ID group-ID style N file args\n")
+        f.write("dump d1 "+ to_dump + " custom 10 dump."+ short_filename +".out id x y z type \n")
 
-        mortals,
-        
-        "# create new atoms only if new bonds have been made", 
-        "# the num of new atoms is linked to the number of new bonds as follow:",
-        "# fix ID group-ID deposit N type M seed keyword values"]
-
-        f.writelines(["%s\n" % item  for item in loop1])
-
-        cc = 1  #compute counter
+        ###      DEPOSIT       ### 
+        f.write("\n\n#        ---DEPOSIT--- \n\n")
+        to_write = (
+            "# insert a single atom or molecule into the simulation domain \n" +
+            "# every N timesteps until M atoms or molecules have been inserted \n"+
+            "# fix ID group-ID deposit M type N seed keyword values \n"
+        )
+        f.write(to_write)
         for r_id in list(R.reactions.keys()):
-            deposit = []
-            if (R.reactions[r_id][1] == []) :  pass
+            if (R.reactions[r_id][1] == []) :  pass # reactions with no produts
             else :
                 for p in R.reactions[r_id][1] :
                     atom = str(S.dictionary[p][0]) +"_"+ str(S.dictionary[p][4])
@@ -462,58 +527,72 @@ def make_lmp(**kwargs):
                     p_id = str(S.dictionary[p][0])
                     growth = S.dictionary[p][3]
                     if (len(R.reactions[r_id][0]) <= 1) :
-                        f.write("fix deposit"+ atom +" all deposit 1 "+ p_id +" "
-                                    + str(growth) +" 5748 region box near 2.0\n")
-                        deposit.append(0)
-                    else:
-                        deposit.append("'fix deposit"+ atom +" all deposit ${newatoms"+ str(cc) 
-                                        +"} "+ p_id +" "+ str(growth) +" 5748 region box near 2.0' &")
+                        f.write("fix deposit"+ atom +" all deposit ${duration} "+ p_id +" "
+                                    + str(growth) +" "+str(r_seed) +" region box near 2.0\n")
+                        r_seed += 1
+                    else : pass
 
-                if (deposit[0] == 0) :
-                    f.write("\n") ; pass
-                else:
-                    f.write("variable newatoms"+str(cc)+" equal floor(${counter"+str(cc)+"}/2)\n")
-                    f.write("if '${counter"+str(cc)+"} > 0' then &\n")
-                    deposit[len(deposit)-1] = deposit[len(deposit)-1][:-1]
-                    f.writelines(["%s\n" % item  for item in deposit])
-                    f.write("\n")
-            cc += 1
+        ###      RUN       ### 
 
-        if(S.total_initial_atoms == 0):
-            to_dump = ("# assing all atoms of the right kind to the dump group\n"
-                    +"group to_dump dynamic all every 1 var righttype \n")
-        else: to_dump = ""                      
-        
-        loop2 = [
-        "\n# assing all atoms that have a bond to the garbage group",
-        "group garbage dynamic all every 1 var hasbond",
+        f.write("\n\n#        ---RUN--- \n")
 
-        to_dump,
-        
-        "# append new values on dump file",
-        "dump_modify 1 append yes\n",
-        
-        "# perform n steps in loop",
-        "run 100\n",
-    
-        "# delate all atoms in garbage",
-        "delete_atoms group garbage bond yes mol yes compress no\n",
-        
-        "# jump to loop lable until step > 0 ",
-        "next step",
-        "jump SELF loop\n",
-        
-        "# end of loop",
-        "label break\n",
-        
-        "# print some useful resumed informations",
-        "print ''",
-        "print 'Starting Atoms: "+ str(S.total_initial_atoms) +" ' ",
-        "print 'Duration: ${duration}'",
-        "print 'ALL DONE' \n"]
+        if (len(R.combinations) > 0) :
+            to_write = (
+                "\n# uncomment this line to append\n"+
+                "# new values on dump file in case \n"+
+                "# it is not updating properly \n"+
+                "# dump_modify d1 append yes \n\n"+
+                "# allow atoms lost during the simulation \n"+
+                "thermo_modify lost ignore \n\n"+
+                "run ${steps} every 100 &\n"+
+                "   'variable position equal ceil(random(1,1000000000,10)/100000.0) ' & \n" 
+            )
+            f.write(to_write)
 
-        f.writelines(["%s\n" % item  for item in loop2])
+            # TODO : number of atom to create
+            create = [] ; pos = 1
+            for r_id in list(R.reactions.keys()):
+                if (R.reactions[r_id][1] == []) :  pass # reactions with no produts
+                else :
+                    for p in R.reactions[r_id][1] :
+                        if (len(R.reactions[r_id][0]) >= 1) :
+                            create.append("   'create_atoms "+ str(S.dictionary[p][0]) 
+                                            +" random 0 ${position}+"+ str(pos) +" box ' &")
+                        else: pass
+            f.writelines(["%s\n" % item  for item in create])
 
+            to_write = (
+                "   '"+ delate_garbage +"' & \n" +
+                "   '"+ delate_perish +"' \n"
+            )
+            f.write(to_write)
+        elif not(perishable == set() ) :
+            to_write = (
+                "# uncomment this line to append\n"+
+                "# new values on dump file in case \n"+
+                "# it is not updating properly \n"+
+                "# dump_modify d1 append yes \n\n"+
+                "# allow atoms lost during the simulation \n"+
+                "thermo_modify lost ignore \n"+
+                "run ${steps} every 100 &\n"+
+                "   '"+ delate_perish +"' \n" 
+            )
+            f.write(to_write)
+        else :
+            f.write("run ${steps}")
+
+        ###     END     ###
+        f.write("\n#        ---END--- \n\n") 
+        to_write = (
+            "# print some useful informations \n"+
+            "print '' \n"+
+            "print 'INFO' \n" +
+            "print 'Starting Atoms: "+ str(S.total_initial_atoms) +" ' \n" +
+            "print 'Duration: ${duration}' \n" +
+            "print 'ALL DONE' \n"
+        )
+        f.write(to_write)    
+        
         f.flush()
         os.fsync(f)
 

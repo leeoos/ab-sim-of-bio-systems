@@ -14,12 +14,6 @@ num_atoms=5
 rand=0
 help=false
 
-# abort command, no simulation name
-if [ -z "$2" ] 
-then
-    usage   "Error: Missing simulation name"
-fi
-
 # remove previous dump file whit same name to avoid errors
 rm dump.* 2> /dev/null
 rm log.* 2> /dev/null
@@ -74,6 +68,12 @@ fi
 if [ -z "$1" ] 
 then
     usage   "Error: Missing input file"
+fi
+
+# abort command, no simulation name
+if [ -z "$2" ] 
+then
+    usage   "Error: Missing simulation name"
 fi
 
 echo "simulation in progress ..."
