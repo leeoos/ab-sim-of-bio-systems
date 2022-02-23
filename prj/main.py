@@ -49,13 +49,13 @@ def run_():
                 n_seed = input("> ")
                 os.system('clear')
 
-                print("\nThe current simulation time is set to 500 steps \n")
+                print("\nThe current simulation time is set to 10000 steps \n")
                 print("Type a new number if you want to change it\n")
                 print("Press Enter to continue with the default\n")
                 s_time = input("> ")
                 os.system('clear')
 
-                if (s_time == "" ) : s_time = "500"
+                if (s_time == "" ) : s_time = "10000"
 
                 if (n_seed != "") : make_lmp(r_seed=int(n_seed), 
                     lmp_file_path=PATH+'/'+lmp_dir+'/in.lmp', sbml_filename = filename)
