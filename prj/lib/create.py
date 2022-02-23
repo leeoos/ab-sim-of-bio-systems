@@ -191,7 +191,7 @@ def make_lmp(**kwargs):
     if(lmp_file_path == None) :  lmp_file_path = 'in.lmp'
 
     if (sbml_model_file == None) :
-        test = 'Tests/complete.xml'
+        test = 'Tests/simple.xml'
         if(os.path.isfile('/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test)) : 
             sbml_model_file = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test #Alharbi2020
         else: 
@@ -400,7 +400,7 @@ def make_lmp(**kwargs):
                 "# by checking their type and kin energy \n" +
                 "compute atype all property/atom type \n" +
                 "compute akin all ke/atom \n\n" +
-                "# toInhibid : Boolean = true if atom is\n" +
+                "# toInhibid : Boolean = true if atom I is\n" +
                 "# perishable and has a low kin value \n"
             )
             f.write(to_write)
@@ -423,7 +423,7 @@ def make_lmp(**kwargs):
                 f.write(to_write)
             to_dump = "to_dump"
             to_write = (
-                "\n# isToDump : boolean = true if atom I is of type between 1 and " +
+                "\n# isToDump : boolean = true if atom I type is between 1 and " +
                 str(S.num_of_species) + 
                 "\nvariable isToDump atom 'c_atype < "+ str(S.num_of_species+1) +"'\n" 
             )
@@ -435,41 +435,80 @@ def make_lmp(**kwargs):
         if (len(R.combinations) > 0) :
             if ((S.total_initial_atoms >= 1) and (perishable == set())) :
                 f.write("\n# compute the atom type for each atom \n")
-                f.write("compute atype all property/atom type \n\n")
-            to_write = (
-                "\n# compute number of bonds for each atoms \n"+
-                "compute nbond all property/atom nbonds \n\n" +
-                "# compute type of bond present in the \n" +
-                "# simulation at the current timestep \n"
-                "compute btype all property/local btype \n"
-                "\n# this lines are necessary to ensure that the compute \n" +
-                "# reduce reference is current when invoked.\n" +
-                "thermo_style custom step temp pe # To Insert ===> compute reduce \n" +
-                "run 0\n"
-            )
-            f.write(to_write)
+                f.write("compute atype all property/atom type \n")
+
+            f.write("\n# compute number of bonds for each atoms \n")
+            f.write("compute nbond all property/atom nbonds \n\n")
+
+            # check for atoms that has to be delated
+            f.write("# toDelate : boolean = true if the atom I has reached\n# the max num of bonds for its type")
             toDelate = "\nvariable toDelate atom '("
             next_line = 1
             for r_id in list(R.reactions.keys()):
-                nbond = int(len(R.reactions[r_id][0])/2)
-                for atype in (R.reactions[r_id][0]) :
-                    if (next_line % 3 != 0):
-                        toDelate = (
-                            toDelate + "c_atype == "+ str(S.dictionary[atype][0]) 
-                            +" && " + "c_nbond >= " + str(nbond) + ") || ("
-                        )
-                    else :
-                        toDelate = (
-                            toDelate + "c_atype == "+ str(S.dictionary[atype][0]) 
-                            +" && " + "c_nbond >= " + str(nbond) + ") & \n|| ("
-                        )
-                    next_line += 1
+                num_bonds = int(len(R.reactions[r_id][0])-1)
+                if len(R.reactions[r_id][0]) <= 1 : pass
+                else :
+                    for atype in (R.reactions[r_id][0]) :
+                        if (next_line % 3 != 0):
+                            toDelate = (
+                                toDelate + "c_atype == "+ str(S.dictionary[atype][0]) 
+                                +" && " + "c_nbond >= " + str(num_bonds) + ") || ("
+                            )
+                        else :
+                            toDelate = (
+                                toDelate + "c_atype == "+ str(S.dictionary[atype][0]) 
+                                +" && " + "c_nbond >= " + str(num_bonds) + ") & \n|| ("
+                            )
+                        next_line += 1
             toDelate = toDelate[:-4] + "' \n"
             f.write(toDelate)
-        else : pass
+            
+            # count new atoms by computing the number of different bond in 
+            # the simulation at the current timestep
+            f.write("\n# count type of bond present in the \n")
+            f.write("# simulation at the current timestep \n")
+            compute_reduce = ""
+            for i, r_id in enumerate(list(R.reactions.keys())):
+                if len(R.reactions[r_id][0]) <= 1 : pass
+                else :
+                    atom_type = S.dictionary[R.reactions[r_id][0][0]][0]
+                    num_bonds = len(R.reactions[r_id][0]) - 1
+                    to_write = (
+                        "variable "+ str(r_id) + "Bonds atom '(c_atype == "+ str(atom_type) 
+                        +" && c_nbond == "+ str(num_bonds) +")' \n" +
+                        "compute count"+ str(r_id) +" all reduce sum v_"+ str(r_id) + "Bonds \n\n"
+                    )
+                    f.write(to_write)
+                    if ((i+1) % 4 == 0) : 
+                        compute_reduce = compute_reduce + "c_count"+ str(r_id) +" &\n"
+                    else : 
+                        compute_reduce = compute_reduce + "c_count"+ str(r_id) +" "
+            to_write = (
+                "# this lines are necessary to ensure that the compute \n"+
+                "# reduce reference is current when invoked.\n" +
+                "thermo_style custom step temp pe "+ compute_reduce + "\n"+
+                "run 0 \n\n"
+            )
+            f.write(to_write)
+            
+            # compute number of new produts for each reaction
+            new_products = []
+            for r_id in list(R.reactions.keys()):
+                if len(R.reactions[r_id][0]) <= 1 : pass
+                else :
+                    f.write("# produts for reaction "+ str(r_id) +"\n")
+                    for p in R.reactions[r_id][1] :
+                        new_atom = str(S.dictionary[p][0]) +"_"+ str(S.dictionary[p][4])
+                        S.dictionary[p][4] += 1
+                        f.write("variable newAtoms"+ new_atom +" equal c_count" + str(r_id) + "\n")
+                        new_products.append("newAtoms"+ new_atom)
+                    f.write("\n")
+        else : 
+            f.write("\n")
+            pass
     
         ###      DINAMICS GROUPS       ###
-        f.write("\n\n#        ---DINAMICS GROUPS--- \n")
+        f.write("\n#        ---DINAMICS GROUPS--- \n")
         f.write("# note: this section could be empty\n")
        
         # update garbage dynamic group
@@ -533,7 +572,6 @@ def make_lmp(**kwargs):
                     else : pass
 
         ###      RUN       ### 
-
         f.write("\n\n#        ---RUN--- \n")
 
         if (len(R.combinations) > 0) :
@@ -550,15 +588,18 @@ def make_lmp(**kwargs):
             f.write(to_write)
 
             # TODO : number of atom to create
-            create = [] ; pos = 1
+            create = [] ; pos = 0
             for r_id in list(R.reactions.keys()):
                 if (R.reactions[r_id][1] == []) :  pass # reactions with no produts
                 else :
                     for p in R.reactions[r_id][1] :
-                        if (len(R.reactions[r_id][0]) >= 1) :
+                        if (len(R.reactions[r_id][0]) <= 1) : pass
+                        else:
                             create.append("   'create_atoms "+ str(S.dictionary[p][0]) 
-                                            +" random 0 ${position}+"+ str(pos) +" box ' &")
-                        else: pass
+                                            +" random ${"+ new_products[pos] +"} ${position}+"
+                                            + str(pos) +" box ' &"
+                                        )
+                            pos += 1
             f.writelines(["%s\n" % item  for item in create])
 
             to_write = (
