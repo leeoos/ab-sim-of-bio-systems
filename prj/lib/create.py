@@ -5,7 +5,6 @@
 #       --- CLASSES ---
 from functools import reduce
 from decimal import Decimal
-#from mimetypes import init
 from random import randint
 import math
 import os
