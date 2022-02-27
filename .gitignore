@@ -3,7 +3,7 @@ log.lammps
 prj/models/lammps/output/log.lammps
 
 # TODO
-TODO.txt
+resources/TODO.txt
 
 # TEMPORANEO
 prj/models/lammps/output/
