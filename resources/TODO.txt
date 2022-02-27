@@ -1,5 +1,6 @@
 TODO URGENTE
 
+pippo
 
 5. creare dei test file ad-hoc per simulare 
     ogni possibile scenario
@@ -19,6 +20,3 @@ TODO URGENTE
 11. completare README, config e toml
 
 12. try enc catch some errors
-
-
-
