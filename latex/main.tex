@@ -69,6 +69,7 @@ Lo scopo di questo progetto \`e
 
 % INTRODUZIONE
 \chapter{Introduzione}
+\label{chap:1}
 %\lettrine[lines=2, findent=3pt, nindent=0pt]{I}{c}
 
 %\bigskip
@@ -77,20 +78,39 @@ Lo scopo di questo progetto \`e
 %\bigskip
 %In \hyperref[chap:2]{Chapter~\ref*{chap:2}} we summarize...
 
+\newpage
 \section{Contesto}
 \label{sec:ctx}
 
+\newpage
 \section{Motivazioni}
 \label{sec:mtv}
 
+\newpage
 \section{Contributi}
 \label{sec:ctb}
 
+\newpage
 \section{Progetti Correlati}
 \label{sec:rlt}
 
+\newpage
 \section{Struttura del Progetto}
-\label{sec:otl}
+\label{sec:stprj}
+Qui \`e delineata la struttura del progetto, l'organizzazione in cartelle e sottocartelle del codice sorgente e dei file di output. Di alcuni di questi file saranno trattati in maniera più approfondita nel capitolo \ref{chap:4} Implementazione. \\
+
+\noindent Descrizione della struttura:
+\begin{itemize}
+    \item models : contiene i modelli di BioModel e quelli di testing indicizzati in sottocartelle relative ad ogni esperimento; 
+    \item prj : contiene le cartelle, librerie e gli script  per l'esecuzione del software: 
+    \begin{itemize}
+        \item[-] lib : contiene lo script \textit{create.py} centrale per il funzionamento del sistema;
+        \item[-] output : contiene le cartelle con i file di output prodotti dal programma per ogni esperimento;
+        \item[-] simulation : contiene le cartelle con i codici per le simulazioni di ogni esperimento;
+        \item[-] \textit{main.py}
+        \item[-] \textit{run.sh}
+    \end{itemize}
+\end{itemize}
 
 %
 \chapter{Prerequisiti}
@@ -169,22 +189,8 @@ La configurazione del sistema nella fase sperimentale e' qui riportata nel detta
     \item Versione OVITO: OVITO Basic 3.5.4
 \end{itemize}
 
-In secondo luogo ecco delineata la struttura del progetto, l'organizzazione in cartelle e sottocartelle del codice sorgente e dei file di output. Di alcuni di questi file o cartelle si \`e già discusso nel capitolo \ref{chap:4} Implementazione, mentre altri sono generati automaticamente dagli script python e bash come risultato dell'esecuzione del programma. \\
 
-\noindent Descrizione della struttura:
-\begin{itemize}
-    \item models : contiene i modelli di BioModel e quelli di testing indicizzati in sottocartelle relative ad ogni esperimento; 
-    \item prj : contiene le cartelle, librerie e gli script  per l'esecuzione del software: 
-    \begin{itemize}
-        \item[-] lib : contiene lo script \textit{create.py} centrale per il funzionamento del sistema;
-        \item[-] output : contiene le cartelle con i file di output prodotti dal programma per ogni esperimento;
-        \item[-] simulation : contiene le cartelle con i codici per le simulazioni di ogni esperimento;
-        \item[-] \textit{main.py}
-        \item[-] \textit{run.sh}
-    \end{itemize}
-\end{itemize}
-
-In ultima analisi sono riportati i passaggi perseguiti allo stadio attuale per una corretta e riproducibile sperimentazione sul sistema:
+In secondo luogo sono riportati i passaggi perseguiti allo stadio attuale per una corretta e riproducibile sperimentazione sul sistema:
 \begin{enumerate}
     \item Raccolta di un numero elevato modelli SBML dal portale BioModels;
     \item Analisi dei modelli raccolti ed estrapolazione delle informazioni strettamente necessarie al fine di generare una simulazione;
@@ -195,31 +201,28 @@ In ultima analisi sono riportati i passaggi perseguiti allo stadio attuale per u
     \item Esecuzione di esperimenti con l'utilizzo dei modelli originali ottenuti dal portale;
 \end{enumerate}
 
-Di questi file, condivisi pubblicamente nel portale BioModels se ne assume la correttezza, come infatti riporta la home del sito i modelli disponibili sono basati sulla letteratura scientifica esistente\footnote{per maggiori informazioni consultare il link presente nella sitografia}.
+In riferimento ad i file condivisi pubblicamente nel portale BioModels se ne assume la correttezza, come infatti riporta la home del sito i modelli disponibili sono basati sulla letteratura scientifica esistente\footnote{per maggiori informazioni consultare il link presente nella sitografia}.
 
-Una lettura dei suddetti modelli verificati e' stata eseguita attraverso lo script \textit{create.py}, centrale nel funzionamento del sistema. I dettagli sul funzionamento di di questo script sono già stati trattati nel capitolo \ref{chap:4} relativo all'implementazione. A questa \`e conseguito un processo di estrapolazione delle informazioni rilevanti per la creazione di un a simulazione adeguata, anche esso affidato allo script. Il risultato di questo paesaggio può essere osservato nei file di output denominati \textit{sbml.analysis} presenti in ogni cartella relativa ad un esperimento eseguito.
-L'Analisi dei suddetti modelli ed estrapolazione delle informazioni. strettamente necessarie (eseguita sempre tramite lo script create.py)
+Una lettura dei suddetti modelli verificati \`e stata eseguita attraverso lo script \textit{create.py}, centrale nel funzionamento del sistema. I dettagli tecnici sul funzionamento di questo script sono già stati trattati nel capitolo \ref{chap:4} relativo all'implementazione. A questa fase di lettura ne \`e conseguito un processo di estrapolazione delle informazioni rilevanti per la creazione di un a simulazione adeguata, anche esso affidato allo script. Il risultato di questo paesaggio può essere osservato nei file di output denominati \textit{sbml.analysis} presenti nelle cartelle relative ad i singoli esperimenti eseguiti. L'organizzazione dei dati di output \`e resa esplicita nel capitolo \ref{chap:1} al paragrafo \ref{sec:stprj}.
+Un file \textit{sbml.analysis} contiene una tabella delle specie individuate nel modello ed una lista delle reazioni presenti. L'assunzione di correttezza su i modelli utilizzati non preclude la presenza di una fase di controllo sintattico, si presuppone pero che, oltre la corretta modellazione del sistema di interesse, il file di input rispetti anche lo standard SBML di livello 3. Questo implica per esempio che ogni specie, cosi come ogni reazione, sia contrassegnata da un identificatore distinto, nel caso ...
+Questo concetto \`e illustrato sul sito \textit{SBML.org} alla pagina riportata in bibliografia \cite{ref:sbmlfaq} sotto la voce \textit{"Isn’t SBML’s definition of ‘compartment’ wrong? A compartment is an amount of substance!"}.
+\\
 
-Creazione di modelli di testing sulla base delle informazioni estrapolate al punto 3.a.ii. I modelli di testing rispettano i seguenti criteri:
-devono complessivamente coprire tutti i casi di studio possibili (ovvero limitandosi a quelli verso cui il progetto e’ indirizzato).
-In particolare sono stati realizzati diversi file, uno per ogni  caso di studio ed un file completo che li racchiude tutti . Esempio di alcuni file di test:
-simple reaction.sbml :
+La creazione di modelli di testing, sulla base delle informazioni raccolte al passo 2, rappresenta un punto fondamentale della fase sperimentale. Questi sono infatti i modelli utilizzati per la verifica della correttezza e l'ottimizzazione del codice, e sono stati scritti rispettando i seguenti criteri:
+\begin{itemize}
+    \item I modelli di testing devono, complessivamente, coprire tutti i casi di studio possibili, ovvero limitandosi a quelli verso cui il progetto e’ indirizzato;
+    \item devono limitarsi a definire un modello attraverso le caratteristiche rilevanti per lo scopo del test e minimi affinché il modello sia considerato corretto per lo standard SBML;
+    \item devono descrivere modelli semplici la cui evoluzione e’ in certa misura prevedibile, in modo da facilitare la valutazione di correttezza del sistema dopo l’esecuzione.
+\end{itemize}
 
-devono limitarsi a definire un modello attraverso le caratteristiche rilevanti per lo scopo del test e minimi affinché il modello sia considerato corretto per lo standard SBML.
-
-devono descrivere modelli semplici la cui evoluzione e’ in certa misura prevedibile, in modo da facilitare la valutazione di correttezza del sistema dopo l’esecuzione.
 Esecuzioni multiple dello script create.py con i diversi file di test come input, al fine di testare la correttezza del sistema e correggere eventuali errori.
 
-Se l'esecuzione non va a buon fine si procede alla fase di debugging (sia dello script python che di quello LAMMPS).
 
-Se l’esecuzione va a buon fine si procede con la valutazione di correttezza dell’output.
-Questo processo avviene con il supporto di OVITO (vedi 3.a.iii), un software di visualizzazione ed analisi per dati di simulazioni atomiche o particellari.
+I punti 4 e 5 sono stati iterati più volte prima di procedere al passo conclusivo, fino a che non si sono ottenuti risultati concordi con la definizione di corretteza del sistema e si \`e stabilito che l'ottimizzazione del software fosse la massima possibile. Ogni iterazione \`e stata caratterizzata dall'esecuzione multipla dello script \textit{create.py} con input i file di testing menzionati. I diversi file sono stati usati per simulare tutti i possibili scenari di applicazione del sistema e valutarne il comportamento. Se l'esecuzione non andava a buon fine si procedeva con l'operazione di debugging per la ricerca e la correzione degli errori nel codice. Una volta superata la prova di correttezza si \`e passato alla fase di ottimizzazione la quale ha avuto termine in seguito ad un giudizio soggettivo dello sviluppatore che non esclude la possibilità di ulteriori ottimizzazioni e rifinimenti futuri. 
+Questo processo \`e avvenuto con il supporto di OVITO, un software di visualizzazione ed analisi per dati di simulazioni atomiche o particellari. Passando ad OVITO i file di output di una simulazione LAMMPS denominati \textit{dump.nome.esperimento.out}
 
-Se l’output corrisponde a quello previsto, tenendo conto di alcuni elementi probabilistici introdotti nella simulazione (vedi Capitolo 4 Implementazione), allora l’esperimento si ritiene concluso con successo.
-Altrimenti si procede alla ricerca di errori logici nello script.
 
-Esecuzioni multiple dello script create.py con file prelevati da Bio Models come input.
-Una volta completata la fase di testing si può procedere con le esecuzioni di esperimenti mirati a valutare l'efficienza del sistema dal punto di vista della capacità di soddisfare pienamente gli obiettivi preposti.
+Una volta completata la fase di testing si può procedere con le esecuzioni di esperimenti più' ampi  a valutare l'efficienza del sistema dal punto di vista della capacità di soddisfare pienamente gli obiettivi preposti.
 
 
 \newpage
@@ -294,11 +297,16 @@ La capacità di interpretare un  modello che rispetti le suddette caratteristich
 \phantomsection
 \begin{thebibliography}{17}
 
+% Bibliografia
 \bibitem{ref:syBio}
 Klipp, Edda Kowald, Axel Liebermeister, Wolfram Wierling, Christoph Wiley,  “\textit{Systems Biology a Textbookt}“, Second Completely Revised and Enlarged Edition, Wiley-VCH 2016 
 
+% Sitografia
 %\bibitem{ref:eso}
 %European Southern Observatory, \url{http://www.eso.Sitografia
+\bibitem{ref:sbmlfaq}
+SBML Frequently Asked Questions, \url{https://synonym.caltech.edu/documents/faq/}
+
 \begin{itemize}
     \item BioModels
     \item LAMMPS
