@@ -1,0 +1,322 @@
+\documentclass[Lau, oneside]{sapthesis}
+%Laurea triennale: Lau 
+\usepackage[italian]{babel} 
+\usepackage[utf8]{inputenx}
+\usepackage{indentfirst}
+\usepackage{microtype}
+%\usepackage{chemformula}
+%\usepackage{setspace}
+%\usepackage{yfonts,color}
+%\usepackage{siunitx}
+%\usepackage{comment}
+%\usepackage{multirow}
+%\usepackage{varioref}
+%\usepackage[bottom]{footmisc}
+\addtolength{\skip\footins}{2pc plus 5pt}
+%\usepackage{wrapfig}
+%\usepackage{float}
+%\usepackage{type1cm}
+\usepackage{lettrine}
+\linespread{0.9}
+%\usepackage{chngcntr}
+\usepackage[nottoc, notlof, notlot]{tocbibind}
+%\onehalfspacing
+%\counterwithout{footnote}{chapter}
+\usepackage{hyperref}
+\hypersetup{
+			%hyperfootnotes=true,			
+			%bookmarks=true,			
+			colorlinks=true,
+			linkcolor=magenta,
+            linktoc=page,
+			anchorcolor=black,
+			citecolor=red,
+			urlcolor=blue,
+			pdftitle={A sample Bachelor's thesis for Sapienza Università di Roma},
+			pdfauthor={FirstName LastName},
+			pdfkeywords={thesis, sapienza, roma, university}
+ }
+ 
+\title{Simulazione di Modelli SBML con LAMMPS}
+\author{Leonardo Colosi}
+\IDnumber{1799057}
+\course[]{Informatica}
+\courseorganizer{Facolt\`a di Ingegneria dell'informazione, Informatica e Statistica}
+\submitdate{2021/2022}
+\copyyear{2022}
+\advisor{Prof. Enrico Tronci}
+%\coadvisor{Dr. co-advisor}
+\authoremail{colosi.1799057@studenti.uniroma1.it}
+%\examdate{22 September 2015}
+%\examiner{Prof. ...} \examiner{Prof. ...} \examiner{Prof. ...}  %\examiner{Prof. ...}  \examiner{Prof. ...} \examiner{Prof. ...}  %\examiner{Prof. ...} 
+
+%we refer to http://ctan.mirrorcatalogs.com/macros/latex/contrib/sapthesis/sapthesis-doc.pdf for an exhaustive description of the sapthesis documentclass.
+
+
+\begin{document}
+
+\frontmatter
+\maketitle
+
+\begin{abstract}
+%Ao so Mario, che non me riconosci
+
+Lo scopo di questo progetto \`e
+\end{abstract}
+
+\tableofcontents
+\mainmatter
+
+% INTRODUZIONE
+\chapter{Introduzione}
+\label{chap:1}
+%\lettrine[lines=2, findent=3pt, nindent=0pt]{I}{c}
+
+%\bigskip
+%In \hyperref[chap:1]{Chapter~\ref*{chap:1}} we  briefly present...
+
+%\bigskip
+%In \hyperref[chap:2]{Chapter~\ref*{chap:2}} we summarize...
+
+\newpage
+\section{Contesto}
+\label{sec:ctx}
+
+\newpage
+\section{Motivazioni}
+\label{sec:mtv}
+
+\newpage
+\section{Contributi}
+\label{sec:ctb}
+
+\newpage
+\section{Progetti Correlati}
+\label{sec:rlt}
+
+\newpage
+\section{Struttura del Progetto}
+\label{sec:stprj}
+Qui \`e delineata la struttura del progetto, l'organizzazione in cartelle e sottocartelle del codice sorgente e dei file di output. Di alcuni di questi file saranno trattati in maniera più approfondita nel capitolo \ref{chap:4} Implementazione. \\
+
+\noindent Descrizione della struttura:
+\begin{itemize}
+    \item models : contiene i modelli di BioModel e quelli di testing indicizzati in sottocartelle relative ad ogni esperimento; 
+    \item prj : contiene le cartelle, librerie e gli script  per l'esecuzione del software: 
+    \begin{itemize}
+        \item[-] lib : contiene lo script \textit{create.py} centrale per il funzionamento del sistema;
+        \item[-] output : contiene le cartelle con i file di output prodotti dal programma per ogni esperimento;
+        \item[-] simulation : contiene le cartelle con i codici per le simulazioni di ogni esperimento;
+        \item[-] \textit{main.py}
+        \item[-] \textit{run.sh}
+    \end{itemize}
+\end{itemize}
+
+%
+\chapter{Prerequisiti}
+\label{chap:2}
+
+% METODI
+\chapter{Metodi}
+\label{chap:3}
+
+% IMPLEMENTAZIONE
+\chapter{Implementazione}
+\label{chap:4}
+
+% ESPERIMENTI
+\chapter{Risultati Sperimentali}
+Verrà qui inizialmente riportata una breve descrizione introduttiva riguardo alle prove effettuate ed i risultati ottenuti in questa fase. Questa sarà poi seguita da un analisi approfondita dei punti rilevanti per una corretta interpretazione degli esiti sperimentali.
+Gli esperimenti compiuti si sono mostrati necessari e sufficienti per un esame completo del comportamento del sistema. La molteplicità di test attuati ha infatti permesso una copertura esaustiva di tutti i casi di studio, illustrati nel paragrafo \ref{sec:cast}. I prodotti di ogni test sono stati poi analizzati ed interpretati in accordo con gli obbiettivi perseguiti, questi esposti in seguito nel paragrafo \ref{sec:obi}.
+Informazioni attinenti al processo di generazione dei dati ed ai modelli impiegati nelle prove sono invece riportate al paragrafo relativo alla configurazione del sistema nello stadio sperimentale \ref{sec:conf}.
+Una stima del costo computazionale complessivo considera tutti i passaggi richiesti dal software per la valutazione di un modello SBML, ovvero l'interpretazione di questo sulla base della quale costruire una simulazione e l'esecuzione della simulazione stessa. Una tale stima e' riportata nel paragrafo \ref{sec:stcomp} con i dovuti approfondimenti.
+Conviene infine ricordare che, non rientrando nelle competenze specifiche dello sviluppatore del sistema la costruzione, l'interpretazione o l’analisi di modelli biochimici, l'interpretazione dei dati sperimentali \`e stata concepita in funzione di dimostrare la correttezza del sistema più che per trarre conclusioni rilevanti nel campo di applicazione dello stesso.
+
+\newpage
+\section{Obiettivi}
+\label{sec:obi}
+Lo svolgimento di test mirati sul funzionamento del sistema e l'esecuzione di esperimenti legati a modelli SBML predefiniti sono stati portato avanti con il fine di conseguire i seguenti obiettivi:
+\begin{itemize}
+    \item Verificare la correttezza del codice nella fase di traduzione e simulazione di un modello SBML;
+    \item Ottimizzare il codice prodotto al fine di rendere le singole simulazioni significativamente più efficienti;
+    \item Ottenere una stima del costo computazionale medio atteso per l'esecuzione di un esperimento;
+    \item Effettuare previsioni sull'evoluzione di un sistema biologico osservandone lo sviluppo della simulazione di un modello;
+\end{itemize}
+
+La verifica della correttezza, come anticipato nell'introduzione a questo capitolo, rappresenta l'obbiettivo primario della fase sperimentale. Una definizione più accurata di ciò che si intende per correttezza sarà data in seguito nel paragrafo \ref{sec:corr}. 
+Solo portando avanti numerosi esperimenti, eseguiti impiegando modelli significativamente diversi tra loro e' stato possibile possibile coprire tutti i casi di studio per ottenere riscontri validi sulla correttezza generale e portare a compimento questo obiettivo.
+In particolare i modelli utilizzati in questa occasione possono essere considerati come modelli scritti ad hoc con lo scopo di testare il sistema e provarne la validità. La struttura e l'organizzazione dei citati modelli verrà discussa nel paragrafo \ref{sec:conf} sulla configurazione.\\
+
+L'ottimizzazione del codice può essere considerata secondaria rispetto alla dimostrazione della correttezza, pertanto subordinata a questa. Ottimizzare un codice non verificato e dunque possibilmente incorretto potrebbe risultare un operazione inutile e controproducente, per tale motivo questo obiettivo e' stato perseguito solo in seguito al compimento del precedente. 
+Lo scopo finale dell'ottimizzazione e' quello di manipolare il codice per renderlo, più compatto, leggibile e funzionale con l'eventuale vantaggio di velocizzare l'esecuzione delle singole simulazioni. 
+Un tale risultato, che implica la possibilità di garantire buone prestazioni del sistema nell'atto di eseguire simulazioni lunghe e complesse e' stato ottenuto grazie all'impiego di test mirati. I suddetti test hanno comportato l'utilizzo di file SBML personalizzati, simili a quelli utilizzati in precedenza per la verifica della correttezza, la cui struttura sarà anche in questo caso esplicitata nel paragrafo \ref{sec:conf} sulla configurazione.\\
+
+La stima dell'efficienza del sistema, risulta ancora una volta come un obiettivo subordinato, in questo caso successivo anche a quello dell'ottimizzazione. Ancora una volta, parlando di efficienza, ritorna il tema sulla separazione delle competenze. In questo caso infatti l'efficienza stimata fa riferimento principalmente ad aspetto più tecnico che applicativo del sistema, si parla infatti nel paragrafo \ref{sec:stcomp} di una stima del costo computazionale. 
+Una valutazione sull'efficienza applicativa e dunque sulla capacita\` del software di fornire vantaggi significativi nell'ambito della predizione di modelli biochimici e' lasciata ad eventuali utenti esperti. Stabilita quindi la correttezza ed effettuata l'ottimizzazione del codice e' stato necessario effettuare ulteriori test con l'unico scopo di raccogliere dati sulle prestazioni. Un'analisi dettagliata dei risultati sarà esposta nel sopracitato paragrafo \ref{sec:stcomp}.\\
+
+Quest'ultimo obbiettivo sarà qui discusso ma non verrà ripreso in nessuno dei successivi paragrafi, per motivi già citati. Esso infatti concerne principalmente l'aspetto applicativo e può essere pienamente conseguito solo da un utente finale del sistema. Tuttavia e' rilevante sottolineare nella fase sperimentale l'obbiettivo ultimo dell'impiego di un software di questo tipo.
+Una simulazione realistica e corretta rappresenta uno strumento molto prezioso  per lo studio di sistemi complessi.\\
+Osservare l’evoluzione di un sistema biologico, durante il progredire di una simulazione che agisce in accordo con le regole definite nel modello SBML ma allo stesso tempo introduce elementi di casualità controllata e riproducibile, può risultare fondamentale per la verifica o la confutazione di predizioni relative al sistema stesso. 
+Un caso particolarmente rilevante e' quello delle simulazioni di dinamica molecolare \textit{MD Simulations}, di cui LAMMPS rappresenta uno dei principali strumenti di realizzazione, essendo stato progettato appositamente per lo scopo.\\
+Partendo da un modello descrittivo di uno specifico sistema biomolecolare, e dunque anche delle possibili interazioni fra molecole che lo compongono, e' infatti possibile studiare la perturbazione dello stesso con il progredire della simulazione.
+Un esempio di perturbazione potrebbe essere la conseguenza della’introduzione di una specie esterna in un ambiente noto (i.e. si conoscono le specie che lo popolano e le interazioni tra di esse). 
+In questo modo, considerando il caso in cui si stabilisce come sistema biologico preesistente una zona del organismo umano e come agente perturbatore esterno un farmaco, si potrebbe valutare la capacita di quest'ultimo nell'apportare al sistema le modifiche da noi desiderate. In particolare, definendo correttamente il modello ed i parametri della simulazione, se ne potrebbe osservare direttamente l'efficacia e la velocità di azione nell'organismo. 
+Modificando poi determinate condizioni iniziali, come ad esempio il dosaggio ovvero la concentrazione del farmaco nella zona d'interesse, e confrontando i risultati delle diverse simulazioni sarà possibile stabilire i parametri ideali per massimizzarne l'efficienza.\\
+
+
+\newpage
+\section{Configurazione}
+\label{sec:conf}
+La configurazione del sistema nella fase sperimentale e' qui riportata nel dettaglio. In primo luogo e' necessario fornire un quadro completo dell'ambiente di sviluppo e dei software impiegati sin nel corso di questa fase sperimentale che nella precedente fase implementativa, come anticipato nel capitolo \ref{chap:4}. Per quanto riguarda l'ambiente di sperimentazione cosi' come l'ambiente, si tratta di un sistema GNU/Linux Debian-based x86\_64, nello specifico all'interno di questo e' stato creato un ambiente virtuale, tramite il modulo venv di python.\\
+
+\noindent Descrizione dell'ambiente virtuale
+\begin{itemize}
+    \item Versione di Python: python 3.9.7 con installati i pacchetti:
+    \begin{itemize}
+        \item[-]  pip               \hspace*{54pt}  20.3.4
+        \item[-]  pkg-resources     \hspace*{6pt}   0.0.0
+        \item[-]  python-libsbml    \hspace*{0.5pt} 5.19.2
+        \item[-]  setuptools        \hspace*{24pt}  44.1.1
+    \end{itemize}
+    \item Versione di LAMMPS \footnote{I pacchetti LAMMPS utilizzati corrispondono con quelli compresi nell'istallazione standard } del 29 Oct 2020 con:
+       \begin{itemize}
+        \item[-]  Compiler: GNU C++ 10.3.0 with OpenMP 4.5
+        \item[-]  C++ standard: C++11
+        \item[-]  MPI v3.1: Open MPI v4.1.1, package: Open MPI
+        \item[-]  ident: 4.1.1, repo rev: v4.1.1, Apr 24, 2021
+    \end{itemize}
+    \item Versione SBML: Systems biology markup language (SBML) level 3
+    \item Versione OVITO: OVITO Basic 3.5.4
+\end{itemize}
+
+
+In secondo luogo sono riportati i passaggi perseguiti allo stadio attuale per una corretta e riproducibile sperimentazione sul sistema:
+\begin{enumerate}
+    \item Raccolta di un numero elevato modelli SBML dal portale BioModels;
+    \item Analisi dei modelli raccolti ed estrapolazione delle informazioni strettamente necessarie al fine di generare una simulazione;
+    \item Creazione di modelli SBML di testing personalizzati;
+    \item Impiego dei modelli personalizzati per la verifica della correttezza e l'ottimizzazione;
+    \item Ricerca e correzione di eventuali errori logici o concettuali, basandosi sull'osservazione dei risultati prodotti dalle simulazioni generate;
+    % Iterazione del passo precedente fino ad assenza di errori prima di passare al punto successivo
+    \item Esecuzione di esperimenti con l'utilizzo dei modelli originali ottenuti dal portale;
+\end{enumerate}
+
+In riferimento ad i file condivisi pubblicamente nel portale BioModels se ne assume la correttezza, come infatti riporta la home del sito i modelli disponibili sono basati sulla letteratura scientifica esistente\footnote{per maggiori informazioni consultare il link presente nella sitografia}.
+
+Una lettura dei suddetti modelli verificati \`e stata eseguita attraverso lo script \textit{create.py}, centrale nel funzionamento del sistema. I dettagli tecnici sul funzionamento di questo script sono già stati trattati nel capitolo \ref{chap:4} relativo all'implementazione. A questa fase di lettura ne \`e conseguito un processo di estrapolazione delle informazioni rilevanti per la creazione di un a simulazione adeguata, anche esso affidato allo script. Il risultato di questo paesaggio può essere osservato nei file di output denominati \textit{sbml.analysis} presenti nelle cartelle relative ad i singoli esperimenti eseguiti. L'organizzazione dei dati di output \`e resa esplicita nel capitolo \ref{chap:1} al paragrafo \ref{sec:stprj}.
+Un file \textit{sbml.analysis} contiene una tabella delle specie individuate nel modello ed una lista delle reazioni presenti. L'assunzione di correttezza su i modelli utilizzati non preclude la presenza di una fase di controllo sintattico, si presuppone pero che, oltre la corretta modellazione del sistema di interesse, il file di input rispetti anche lo standard SBML di livello 3. Questo implica per esempio che ogni specie, cosi come ogni reazione, sia contrassegnata da un identificatore distinto, nel caso ...
+Questo concetto \`e illustrato sul sito \textit{SBML.org} alla pagina riportata in bibliografia \cite{ref:sbmlfaq} sotto la voce \textit{"Isn’t SBML’s definition of ‘compartment’ wrong? A compartment is an amount of substance!"}.
+\\
+
+La creazione di modelli di testing, sulla base delle informazioni raccolte al passo 2, rappresenta un punto fondamentale della fase sperimentale. Questi sono infatti i modelli utilizzati per la verifica della correttezza e l'ottimizzazione del codice, e sono stati scritti rispettando i seguenti criteri:
+\begin{itemize}
+    \item I modelli di testing devono, complessivamente, coprire tutti i casi di studio possibili, ovvero limitandosi a quelli verso cui il progetto e’ indirizzato;
+    \item devono limitarsi a definire un modello attraverso le caratteristiche rilevanti per lo scopo del test e minimi affinché il modello sia considerato corretto per lo standard SBML;
+    \item devono descrivere modelli semplici la cui evoluzione e’ in certa misura prevedibile, in modo da facilitare la valutazione di correttezza del sistema dopo l’esecuzione.
+\end{itemize}
+
+Esecuzioni multiple dello script create.py con i diversi file di test come input, al fine di testare la correttezza del sistema e correggere eventuali errori.
+
+
+I punti 4 e 5 sono stati iterati più volte prima di procedere al passo conclusivo, fino a che non si sono ottenuti risultati concordi con la definizione di corretteza del sistema e si \`e stabilito che l'ottimizzazione del software fosse la massima possibile. Ogni iterazione \`e stata caratterizzata dall'esecuzione multipla dello script \textit{create.py} con input i file di testing menzionati. I diversi file sono stati usati per simulare tutti i possibili scenari di applicazione del sistema e valutarne il comportamento. Se l'esecuzione non andava a buon fine si procedeva con l'operazione di debugging per la ricerca e la correzione degli errori nel codice. Una volta superata la prova di correttezza si \`e passato alla fase di ottimizzazione la quale ha avuto termine in seguito ad un giudizio soggettivo dello sviluppatore che non esclude la possibilità di ulteriori ottimizzazioni e rifinimenti futuri. 
+Questo processo \`e avvenuto con il supporto di OVITO, un software di visualizzazione ed analisi per dati di simulazioni atomiche o particellari. Passando ad OVITO i file di output di una simulazione LAMMPS denominati \textit{dump.nome.esperimento.out}
+
+
+Una volta completata la fase di testing si può procedere con le esecuzioni di esperimenti più' ampi  a valutare l'efficienza del sistema dal punto di vista della capacità di soddisfare pienamente gli obiettivi preposti.
+
+
+\newpage
+\section{Casi di Studio}
+\label{sec:cast}
+reazioni biochimiche.
+Quali file sono stati presi in considerazione?
+come anticipato i modelli SBML sono stati acquisiti dal portale Bio Models.
+non tutti i tipi di file presenti (di formato SBML ) sono stati presi in considerazione:
+solo quelli Sapiens
+solo quelli Non-kinetics
+solo quelli relativi ad interazioni molecolari e non cellulari
+Tramite i file Bio Models sono stati creati i file di test che però non sono rilevanti nel contesto dei casi di studio in quanto rappresentano modelli fittizi creati appositamente per testare il sistema.
+Nonostante questo i file di testo rappresentano un'ottima indicazione dei diversi casi di studio rappresentati dai modelli originali in quanto il loro scopo è proprio quello di ricreare a livello astratto tutte le possibili situazioni di applicazione del sistema.
+Effettivi casi di studio con riferimento al modello astratto creato per la fase di testing (vedi punto 4.c.i). Tutti i modelli relativi a tali casi contengono la definizione di almeno una o di una combinazione delle reazioni possibili reazioni qui elencate:
+Crescita di una specie
+Inibizione di una specie
+Trasformazione di una specie
+Reazione tra due specie con una specie come prodotto 
+Reazione tra più di due specie con una specie come prodotto
+Crescita contemporanea di due o più specie
+Inibizione contemporanea di due o più specie 
+Reazione tra due specie con più di una specie come prodotto 
+Reazione tra più di due specie con una più di una specie come prodotto
+Reazione a catena: il prodotto di una reazione e’ coinvolto a sua volta in una o più reazioni
+Nota : vi e’ una differenziazione tra le reazioni che coinvolgono due specie rispetto a quelle che ne coinvolgono dalle tre in poi. Questo dipende da un dettaglio implementativo illustrato nel capitolo  4 Implementazione, legato alla gestione in lammps dei legami tra coppie di atomi.
+
+
+\newpage
+\section{Correttezza}
+\label{sec:corr}
+La dimostrazione della correttezza del sistema si articola in due fasi distinte:
+Inizialmente sono stati effettuati una serie di esperimenti su modelli fittizi creati appositamente per verificare il corretto comportamento del software rispetto a tutte le possibili configurazioni SBML accettabili.
+In secondo luogo e' avvenuta la valutazione di file significativamente più complessi i cui elementi di interesse rispecchiano però quelli appositamente costruiti nei file di test. Per tale motivo la suddetta valutazione non ha prodotto.
+
+Una valutazione della correttezza del codice e dunque del sistema nella sue interezza, e' stata eseguiti considerando quattro criteri fondamentali principali. Il primo di questi riguarda un aspetto strettamente tecnico ovvero la verifica dell'assenza di errori logico sintattici nella definizione di algoritmi e strutture dati.
+Verificare la correttezza del sistema nella fase di traduzione di un modello SBML in uno script di simulazione LAMMPS adeguato in accordo con i criteri precedentemente esposti nei capitoli 3 Metodi e 4 Implementazione.
+Brevissimo recap dei criteri principali:
+Astrazione delle molecole e degli atomi come “palline”, di seguito chiamate agenti.
+Considerazione di legami tra agenti come espressione di reazioni chimiche tra specie in accordo alla struttura SBML.
+Idealizzazione della Struttura biochimica dello spazio di simulazione con conseguente interpretazione flessibile delle unita’ di misura.
+Una corretta traduzione del modello in input e' considerata tale quando lo script LAMMPS generato soddisfa i seguenti requisiti :
+Non presenta errori strutturali (di sintassi o di compilazione).
+Definisce un ambiente di simulazione analogo a quello descritto nel file SBML (a patto dei criteri sopracitati).
+Lo svolgimento della simulazione va a buon fine, nel corso di questa è possibile osservare l’evoluzione del sistema in accordo con le regole definite nel modello.
+produce files che raccolgono in maniera ordinata i dati di output rappresentando una fotografia del sistema ogni N passi:
+in questo modo la simulazione sarà riproducibile.
+sarà possibile confrontare la simulazione con simulazione di modelli analoghi o dello stesso modello con diversi parametri di input.
+i dati potranno essere manipolati e studiati separatamente.
+Solo tramite molteplici esperimenti, eseguiti impiegando modelli molto diversi tra loro e’ possibile coprire tutti i casi di studio e ottenere riscontri validi sulla correttezza del sistema.
+
+\newpage
+\section{Stima Computazionale}
+\label{sec:stcomp}
+Una valutazione completa del costo computazionale includerebbe sia l'aspetto dell'efficienza degli algoritmi impiegati nella fase di generazione dello script lammps, a partire dalla lettura di un documento SBML, sia nella velocità di esecuzione dello stesso. Per quanto riguarda il primo dei due aspetti presi in considerazione nella valutazione, possiamo fare riferimento alla sezione --- indica sezione --- del capitolo --- indica il capitolo implementazione --- dove sono stati mostrati alcuni esempi di scelte implementative fondate  principalmente su una stima del costo computazionale effettuata a priori. Notiamo per esempio come la corretta lettura del file di input rappresenti un problema noto, risolto tramite l'impiego di librerie python ben supportate come per esempio libSBML. Le funzioni fornite da tali librerie hanno permesso di facilitare l'operazione di lettura e l'estrapolazione di dati di interesse dal modello in un tempo equivalente a --- inserisci stima costo libSBML se esiste ---, tuttavia l'organizzazione dei suddetti dati in strutture agevoli per la creazione dello script ha reso necessaria una stima più accurata sul possibile impatto sulle prestazioni del sistema. 
+
+\newpage
+\section{Valutazione Tecnica}
+\label{sec:valtc}
+Premessa dovute:
+Come anticipato nel punto 1.b (Giustificazioni) non sarebbe possibile effettuare una rigorosa valutazione tecnica senza tenere conto delle competenze biochimiche necessarie per interpretare il significato dei modelli utilizzati e di conseguenza esprimere un giudizio sulle performance del sistema
+Inoltre bisogna tenere conto anche del livello di astrazione descritto nei capitoli 3 Metodi e 4 Implementazione. Il quale porta inevitabilmente verso una semplificazione dei meccanismi biochimici descritti da un modello SBML.
+Alla luce delle premesse effettuate, tenendo conto che uno studio approfondito delle questioni di competenza biochimica va ben oltre gli obiettivi di questo testo, e’ possibile definire le basi sulle quali effettuare una valutazione tecnica soddisfacente. Per fare ciò e’ infatti necessario determinare:
+La capacità del sistema di accogliere in input modelli SBML disparati, a patto che questi siano formalmente e sintatticamente corretti (nota a piè di pagina: una valutazione sintattica in effetti viene eseguita ma in generale si presume l’assenza di errori di scrittura non conforme allo standard).
+La capacità di interpretare un  modello che rispetti le suddette caratteristiche producendo uno script LAMMPS altrettanto corretto le cui istruzioni definiranno le regole fondamentali per la simulazione del modello stesso.
+
+
+% CONCLUSIONI
+\chapter{Conclusioni}
+
+\backmatter
+\phantomsection
+\begin{thebibliography}{17}
+
+% Bibliografia
+\bibitem{ref:syBio}
+Klipp, Edda Kowald, Axel Liebermeister, Wolfram Wierling, Christoph Wiley,  “\textit{Systems Biology a Textbookt}“, Second Completely Revised and Enlarged Edition, Wiley-VCH 2016 
+
+% Sitografia
+%\bibitem{ref:eso}
+%European Southern Observatory, \url{http://www.eso.Sitografia
+\bibitem{ref:sbmlfaq}
+SBML Frequently Asked Questions, \url{https://synonym.caltech.edu/documents/faq/}
+
+\begin{itemize}
+    \item BioModels
+    \item LAMMPS
+    \begin{itemize}
+        \item roba di lammps che sta in lammps\_basic e lammps\_advanced
+    \end{itemize}
+    \item SBML
+    \item Python
+\end{itemize}
+
+\end{thebibliography}
+
+\end{document}
