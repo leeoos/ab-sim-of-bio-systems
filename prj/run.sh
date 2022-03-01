@@ -54,7 +54,7 @@ shift $((OPTIND-1))
 # display helping manual 
 if $help
 then
-    cat $path_to_this_file/../resources/run.sh.help
+    cat $path_to_this_file/../resources/instructions.txt
     exit 0
 fi
 

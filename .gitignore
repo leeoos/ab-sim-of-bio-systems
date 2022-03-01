@@ -6,8 +6,7 @@ prj/models/lammps/output/log.lammps
 TODO
 
 # TEMPORANEO
-prj/models/lammps/output/
-prj/lib/foo/
+prj/lib/test/
 
 ### VScode ###
 .vscode/
