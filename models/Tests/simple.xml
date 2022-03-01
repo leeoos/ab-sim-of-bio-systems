@@ -17,7 +17,7 @@
 
     <listOfSpecies>
       <species id="s1" compartment="c1" initialAmount="6" initialConcentration="1" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
-      
+
       <species id="s2" compartment="c1" initialAmount="6" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>
       
       <species id="s3" compartment="c1" initialAmount="0" substanceUnits="mole" hasOnlySubstanceUnits="false" boundaryCondition="false" constant="false"/>

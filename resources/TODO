@@ -1,11 +1,12 @@
 TODO URGENTE
 
 Risorse:
-
+--------------------------------------------------
 1. aggiorna la cartella risorse
 
-TESI URGENTE
 
+TESI URGENTE:
+--------------------------------------------------
 1. finisci il capitolo metodi
     - inserisci immagini dei modelli agent based e dei modelli 
 
@@ -13,9 +14,18 @@ TESI URGENTE
     - inserisci pezzi di pseudocodice
 
 3. Inserisci immagini e grafici
+    - VA TROVATO UN ALTRO ESEMPIO PIÙ REALISTICO PER GLI OBIETTIVI E L’IMMAGINE DELL’ESECUZIONE DI UN MODELLO DEL ESEMPIO
+
+    
+    - UN’IMMAGINE DI UNO DEI MODELLI SELEZIONATI
+    
+    - UNA SERIE DI IMMAGINI CONSECUTIVEDI UNO SCONTRO E LA GENERAZIONE DI UN NUOVO ATOMOSPIEGANDO COME QUESTO RAPPRESENTI IL COMPORTAMEN-TO CORRETTO DEL SISTEMA DA FARE CON IL simple.xml
+    - SE RIESCI PUOI FARE UN GRAFICO CON I VARI TEMPI DIESECUZIONE DI CREATE.PY ALL’AUMENTARE DELLE DIMEN-SIONI DEI FILE DI INPUT
+    - SE RIESCI PUOI FARE UN GRAFICO CON I VARI TEMPI DIESECUZIONE DI IN.LMP ALL’AUMENTARE DELLE DIMENSIONIDEI FILE DI INPUT
+
 
 Codice:
-
+--------------------------------------------------
 1. creare dei test file ad-hoc per simulare 
     ogni possibile scenario
 
@@ -24,7 +34,6 @@ Codice:
 3. arricchire il dump file
     - con linee di codice commentate per la creazione di immagini e di movies
 
---------------------------------------------------
 Da fare alla fine dopo la consegna della tesi
 --------------------------------------------------
 4. implemntare un meccanismo di log nel create.py
