@@ -1,22 +1,36 @@
 TODO URGENTE
 
-Codice:
-
-5. creare dei test file ad-hoc per simulare 
-    ogni possibile scenario
-
-7. inserire i commenti e ottimizzare il create.py
-
-8. arricchire il dump file
-
-9. implemntare un meccanismo di log nel create.py
-
-10. completare il main.py
-
-11. completare README, config e toml
-
-12. try end catch some errors
-
 Risorse:
 
 1. aggiorna la cartella risorse
+
+TESI URGENTE
+
+1. finisci il capitolo metodi
+    - inserisci immagini dei modelli agent based e dei modelli 
+
+2. finiscio il capitolo implemntare
+    - inserisci pezzi di pseudocodice
+
+3. Inserisci immagini e grafici
+
+Codice:
+
+1. creare dei test file ad-hoc per simulare 
+    ogni possibile scenario
+
+2. inserire i commenti e ottimizzare il create.py
+
+3. arricchire il dump file
+    - con linee di codice commentate per la creazione di immagini e di movies
+
+--------------------------------------------------
+Da fare alla fine dopo la consegna della tesi
+--------------------------------------------------
+4. implemntare un meccanismo di log nel create.py
+
+5. completare il main.py
+
+6. completare README, config e toml
+
+12. try end catch some errors
