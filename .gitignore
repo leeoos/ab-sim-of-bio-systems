@@ -3,7 +3,8 @@ log.lammps
 prj/models/lammps/output/log.lammps
 
 # TODO
-#TODO
+TODO
+resources/TODO
 
 # TEST FOLDER
 prj/lib/test/
