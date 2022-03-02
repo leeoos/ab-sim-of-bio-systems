@@ -18,6 +18,7 @@ help=false
 rm dump.* 2> /dev/null
 rm log.* 2> /dev/null
 rm ${path_to_this_file}/output/$2/dump.* 2> /dev/null
+rm ${path_to_this_file}/output/$2/images/dump.* 2> /dev/null
 rm ${path_to_this_file}/output/$2/log.* 2> /dev/null
 
 while getopts ":o:t:a:rh" opt; do
@@ -86,11 +87,19 @@ sleep 1
 # create a output directory if not exist
 mkdir -p ${path_to_this_file}/output/$2
 
+# move all images (if exists) in images folder
+IMAGES=$(ls | grep -P "^dump\.[0-9]+")
+if [ -n "$IMAGES" ]; then
+    echo sasso
+    mkdir -p ${path_to_this_file}/output/$2/images
+    ls | grep -P "^dump\.[0-9]+" | xargs -d"\n" mv -t "${path_to_this_file}"/output/"$2"/images
+fi
+
 # move the output files to the correct directory
-mv $dump ${path_to_this_file}/output/$2/    2> /dev/null
 mv sbml.* ${path_to_this_file}/output/$2/   2> /dev/null
 mv dump.* ${path_to_this_file}/output/$2/   2> /dev/null
 mv log.* ${path_to_this_file}/output/$2/    2> /dev/null
+
 
 # run ovito on the dump file
 if $ovito 

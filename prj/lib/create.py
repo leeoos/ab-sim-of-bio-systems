@@ -190,7 +190,7 @@ def make_lmp(**kwargs):
     if(lmp_file_path == None) :  lmp_file_path = 'in.lmp'
 
     if (sbml_model_file == None) :
-        test = 'Tests/complete.xml'
+        test = 'Tests/simple.xml'
         if(os.path.isfile('/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test)) : 
             sbml_model_file = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test #Alharbi2020
         else: 
@@ -506,6 +506,7 @@ def make_lmp(**kwargs):
             f.write("\n")
             pass
     
+
         ###      DINAMICS GROUPS       ###
         f.write("\n#        ---DINAMICS GROUPS--- \n")
         f.write("# note: this section could be empty\n")
@@ -540,13 +541,21 @@ def make_lmp(**kwargs):
             f.write(to_write)
         else: pass
 
+
         ###      DUMP FILE       ###
         f.write("\n\n#        ---DUMP FILE--- \n\n")
 
         # make a dump file to sote sim info every 10 timestep 
-        f.write("# dump atoms information every 10 timestep\n")
-        f.write("# dump ID group-ID style N file args\n")
-        f.write("dump d1 "+ to_dump + " custom 10 dump."+ short_filename +".out id x y z type \n")
+        to_write = (
+            "# dump atoms information every 10 timestep\n"+
+            "# dump ID group-ID style N file args\n" +
+            "dump d1 "+ to_dump + " custom 10 dump."+ short_filename +".out id x y z type \n\n"+
+            "# uncomment the following line to generate a series of \n"+
+            "# images of the atom configuration every N timesteps \n"+
+            "# dump di all image 100 dump.*.jpg type type \n"
+        )
+        f.write(to_write)
+
 
         ###      DEPOSIT       ### 
         f.write("\n\n#        ---DEPOSIT--- \n\n")
