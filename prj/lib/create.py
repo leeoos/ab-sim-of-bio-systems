@@ -190,7 +190,7 @@ def make_lmp(**kwargs):
     if(lmp_file_path == None) :  lmp_file_path = 'in.lmp'
 
     if (sbml_model_file == None) :
-        test = 'Tests/simple.xml'
+        test = 'tests/simple.xml'
         if(os.path.isfile('/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test)) : 
             sbml_model_file = '/home/leeoos/Projects/Tesi/AB-Sim-Of-Bio-Systems/models/'+test #Alharbi2020
         else: 

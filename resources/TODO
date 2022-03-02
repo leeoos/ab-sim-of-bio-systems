@@ -11,12 +11,7 @@ TESI URGENTE:
 
 3. Inserisci immagini e grafici
     - VA TROVATO UN ALTRO ESEMPIO PIÙ REALISTICO PER GLI OBIETTIVI E L’IMMAGINE DELL’ESECUZIONE DI UN MODELLO DEL ESEMPIO
-
-    
     - UN’IMMAGINE DI UNO DEI MODELLI SELEZIONATI
-    
-    - UNA SERIE DI IMMAGINI CONSECUTIVEDI UNO SCONTRO E LA GENERAZIONE DI UN NUOVO ATOMOSPIEGANDO COME QUESTO RAPPRESENTI IL COMPORTAMEN-TO CORRETTO DEL SISTEMA DA FARE CON IL simple.xml
-    
     - SE RIESCI PUOI FARE UN GRAFICO CON I VARI TEMPI DIESECUZIONE DI CREATE.PY ALL’AUMENTARE DELLE DIMEN-SIONI DEI FILE DI INPUT
     - SE RIESCI PUOI FARE UN GRAFICO CON I VARI TEMPI DIESECUZIONE DI IN.LMP ALL’AUMENTARE DELLE DIMENSIONIDEI FILE DI INPUT
 
@@ -26,17 +21,12 @@ Codice:
 1. creare dei test file ad-hoc per simulare 
     ogni possibile scenario
 
-2. inserire i commenti e ottimizzare il create.py
+2. inserire i commenti nel create.py
 
-3. arricchire il dump file
-    - con linee di codice commentate per la creazione di immagini e di movies
+3. implemntare un meccanismo di log nel create.py
 
-Da fare alla fine dopo la consegna della tesi
---------------------------------------------------
-4. implemntare un meccanismo di log nel create.py
+4. completare il main.py
 
-5. completare il main.py
+5. completare README, config e toml
 
-6. completare README, config e toml
-
-12. try end catch some errors
+6 try end catch some errors
