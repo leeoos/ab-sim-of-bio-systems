@@ -1,0 +1,232 @@
+# Agent Based Simulation Of Biological Systems
+
+
+#       --- SET UP OF INPUT VARIABLES ---
+
+# steps : int = number of steps to execute
+variable time_value index 10000  # default value: 10000
+variable steps equal ${time_value}
+
+# duration : int = simulation steps * dump interval
+#for the current run
+variable duration equal ${steps}*0.1
+
+# uncomment the last 2 lines of this section and
+# substitue the number of atoms in the create_atoms command with ${atoms} 
+# to modify the initial amount of atoms in the simulation;
+# prj/run.sh -h for more info
+# Note: doing so the initial amount will be the same for all atoms types
+# atoms : int = N number of atoms of each type to generate 
+#variable num_atoms index 5
+#variable atoms equal ${num_atoms}
+
+
+#       --- SIMULATION BOX PROPERTIES ---
+
+# sym measure units and atoms style
+units       lj
+atom_style  full 
+
+# box dimension, boudaries and structure
+dimension   3  
+boundary    f f f 
+lattice     fcc 3.52
+
+# flag2 = on or off for bonded interactions
+newton on off
+
+# define simulation box
+region      box block 0 30 0 30 0 30
+create_box  14 box  bond/types 1 extra/bond/per/atom 100
+
+# create simulation walls
+fix xwalls all wall/reflect xlo EDGE xhi EDGE
+fix ywalls all wall/reflect ylo EDGE yhi EDGE
+fix zwalls all wall/reflect zlo EDGE zhi EDGE
+
+
+#       --- AGENTS PROPRETIES AND FORCE FIELDS ---
+
+# creation of atoms of types in randoms spots inside the box
+create_atoms    1 random 10 5783 box  # btyr
+create_atoms    2 random 0 5784 box  # hva      | product  |
+create_atoms    3 random 2 5785 box  # eda     | reactant |
+create_atoms    4 random 0 5786 box  # SAM
+create_atoms    5 random 0 5787 box  # SAH
+create_atoms    6 random 0 5788 box  # NADP      | product  |
+create_atoms    7 random 0 5789 box  # NADPH     | reactant |
+create_atoms    8 random 4 5790 box  # bh4     | reactant |      | product  |
+create_atoms    9 random 5 5791 box  # bh2     | reactant |      | product  |
+create_atoms    10 random 2 5792 box  # tyr     | reactant |
+create_atoms    11 random 2 5793 box  # tyrpool
+create_atoms    12 random 4 5794 box  # l_dopa     | reactant |      | product  |
+create_atoms    13 random 3 5795 box  # cda     | reactant |      | product  |
+create_atoms    14 random 9 5796 box  # vda     | reactant |      | product  |
+
+# atoms mass
+mass 1 1.0
+mass 2 1.0
+mass 3 1.0
+mass 4 1.0
+mass 5 1.0
+mass 6 1.0
+mass 7 1.0
+mass 8 1.0
+mass 9 1.0
+mass 10 1.0
+mass 11 1.0
+mass 12 1.0
+mass 13 1.0
+mass 14 1.0
+
+# force fields style and coefficient
+pair_style zero 5.0
+pair_coeff * *
+
+# bond style and coefficients
+bond_style  harmonic
+bond_coeff * 100 1.1
+
+ 
+#      --- SIMULATION ---
+
+# set the time step for the simulation
+# it is directly proportional to the atoms velocity
+# AB-Sim-Of-Bio-Systems/resources/Tesi.pdf for more info
+timestep 0.001   # abstract units : seconds
+
+# this command sets parameters that affect
+# the building of pairwise neighbor lists
+neighbor 0.001 bin
+neigh_modify every 10 delay 100
+
+# print thermodinamic inf every N timesteps
+thermo 100 
+
+# this fix will attempt to create new bond btw atoms of type i and j every N timestep
+# fix ID group-ID bond/create Nevery itype jtype Rmin bondtype keyword values
+fix bond_10_8 all bond/create 10 10 8 1.0 1 prob 0.5 5797
+fix bond_9_7 all bond/create 10 9 7 1.0 1 prob 0.5 5798
+fix bond_13_14 all bond/create 10 13 14 1.0 1 prob 0.5 5799
+
+# set velocity for all atoms
+velocity all create 300.0 4928459 rot yes dist gaussian 
+
+# perform plain time integration 
+# to update position and velocity
+# and simulate Brownioan motion
+fix kin all nve
+fix lgv all langevin 300.0 300.0 10.0 904297
+
+
+#        ---COMPUTES--- 
+
+# comupe which atoms should be inhibid 
+# by checking their type and kin energy 
+compute atype all property/atom type 
+compute akin all ke/atom 
+
+# toInhibid : Boolean = true if atom I is
+# perishable and has a low kin value 
+variable toInhibid atom '( c_atype == 3 ||  c_atype == 12) & 
+&& c_akin < 100.0'
+
+# compute number of bonds for each atoms 
+compute nbond all property/atom nbonds 
+
+# toDelate : boolean = true if the atom I has reached
+# the max num of bonds for its type
+variable toDelate atom '(c_atype == 10 && c_nbond >= 1) || (c_atype == 8 && c_nbond >= 1) || (c_atype == 9 && c_nbond >= 1) & 
+|| (c_atype == 7 && c_nbond >= 1) || (c_atype == 13 && c_nbond >= 1) || (c_atype == 14 && c_nbond >= 1) & 
+' 
+
+# count type of bond present in the 
+# simulation at the current timestep 
+variable VTHBonds atom '(c_atype == 10 && c_nbond == 1)' 
+compute countVTH all reduce sum v_VTHBonds 
+
+variable VDRRBonds atom '(c_atype == 9 && c_nbond == 1)' 
+compute countVDRR all reduce sum v_VDRRBonds 
+
+variable VMATBonds atom '(c_atype == 13 && c_nbond == 1)' 
+compute countVMAT all reduce sum v_VMATBonds 
+
+# this lines are necessary to ensure that the compute 
+# reduce reference is current when invoked.
+thermo_style custom step temp pe c_countVTH c_countVDRR c_countVMAT &
+
+run 0 
+
+# produts for reaction VTH
+variable newAtoms12_0 equal c_countVTH
+variable newAtoms9_0 equal c_countVTH
+
+# produts for reaction VDRR
+variable newAtoms8_0 equal c_countVDRR
+variable newAtoms6_0 equal c_countVDRR
+
+# produts for reaction VMAT
+variable newAtoms14_0 equal c_countVMAT
+
+
+#        ---DINAMICS GROUPS--- 
+# note: this section could be empty
+
+# assing all atoms that have shold be delated to  
+# the garbage group and update it every N timesteps 
+group garbage dynamic all every 10 var toDelate 
+
+# assing some perishable atoms to the inhibit group 
+# update group every N timesteps 
+group inhibid dynamic all every 10 var toInhibid 
+
+
+#        ---DUMP FILE--- 
+
+# dump atoms information every 10 timestep
+# dump ID group-ID style N file args
+dump d1 all custom 10 dump.MODEL1502230000.out id x y z type 
+
+# uncomment the following line to generate a series of 
+# images of the atom configuration every N timesteps 
+# dump di all image 100 dump.*.jpg type type 
+
+
+#        ---DEPOSIT--- 
+
+# insert a single atom or molecule into the simulation domain 
+# every N timesteps until M atoms or molecules have been inserted 
+# fix ID group-ID deposit M type N seed keyword values 
+fix deposit13_0 all deposit ${duration} 13 500 5800 region box near 2.0
+fix deposit13_1 all deposit ${duration} 13 500 5801 region box near 2.0
+fix deposit2_0 all deposit ${duration} 2 404 5802 region box near 2.0
+
+
+#        ---RUN--- 
+
+# uncomment this line to append
+# new values on dump file in case 
+# it is not updating properly 
+# dump_modify d1 append yes 
+
+# allow atoms lost during the simulation 
+thermo_modify lost ignore 
+
+run ${steps} every 100 &
+   'variable position equal ceil(random(1,1000000000,10)/100000.0) ' & 
+   'create_atoms 12 random ${newAtoms12_0} ${position}+0 box ' &
+   'create_atoms 9 random ${newAtoms9_0} ${position}+1 box ' &
+   'create_atoms 8 random ${newAtoms8_0} ${position}+2 box ' &
+   'create_atoms 6 random ${newAtoms6_0} ${position}+3 box ' &
+   'create_atoms 14 random ${newAtoms14_0} ${position}+4 box ' &
+   'delete_atoms group garbage bond yes mol yes compress no' & 
+   'delete_atoms group inhibid compress no' 
+
+#        ---END--- 
+
+# print some useful informations 
+print '' 
+print 'INFO' 
+print 'Starting Atoms: 41 ' 
+print 'Duration: ${duration}' 
+print 'ALL DONE' 

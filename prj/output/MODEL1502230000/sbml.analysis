@@ -1,0 +1,70 @@
+Analysis of SBML file: MODEL1502230000
+
+
+Species 
+
+Species id           Atom id              Compartment               Amount                        
+
+btyr                 1                    Extrecellular             10                            
+
+hva                  2                    Extrecellular             0                             
+
+eda                  3                    Extrecellular             2                             
+
+SAM                  4                    Extrecellular             0                             
+
+SAH                  5                    Extrecellular             0                             
+
+NADP                 6                    Cytosol                   0                             
+
+NADPH                7                    Cytosol                   0                             
+
+bh4                  8                    Cytosol                   4                             
+
+bh2                  9                    Cytosol                   5                             
+
+tyr                  10                   Cytosol                   2                             
+
+tyrpool              11                   Cytosol                   2                             
+
+l_dopa               12                   Cytosol                   4                             
+
+cda                  13                   Cytosol                   3                             
+
+vda                  14                   Vesicle                   9                             
+
+
+Reactions Map 
+
+-VTH: 
+
+		['tyr', 'bh4']        ->  ['l_dopa', 'bh2']   
+
+
+-VDRR: 
+
+		['bh2', 'NADPH']      ->  ['bh4', 'NADP']     
+
+
+-VAADC: 
+
+		['l_dopa']            ->  ['cda']             
+
+
+-VMAT: 
+
+		['cda', 'vda']        ->  ['vda']             
+
+
+-VDAT: 
+
+		['eda']               ->  ['cda']             
+
+
+-VCATAB: 
+
+		['eda']               ->  ['hva']             
+
+
+
+
