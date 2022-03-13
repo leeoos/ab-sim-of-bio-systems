@@ -595,7 +595,7 @@ def make_lmp(**kwargs):
             )
             f.write(to_write)
 
-            # TODO : number of atom to create
+           
             create = [] ; pos = 0
             for r_id in list(R.reactions.keys()):
                 if (R.reactions[r_id][1] == []) :  pass # reactions with no produts

@@ -197,9 +197,9 @@ dump d1 all custom 10 dump.MODEL1502230000.out id x y z type
 # insert a single atom or molecule into the simulation domain 
 # every N timesteps until M atoms or molecules have been inserted 
 # fix ID group-ID deposit M type N seed keyword values 
-fix deposit13_0 all deposit ${duration} 13 500 5800 region box near 2.0
-fix deposit13_1 all deposit ${duration} 13 500 5801 region box near 2.0
-fix deposit2_0 all deposit ${duration} 2 404 5802 region box near 2.0
+fix deposit13_0 all deposit ${duration} 13 389 5800 region box near 2.0
+fix deposit13_1 all deposit ${duration} 13 389 5801 region box near 2.0
+fix deposit2_0 all deposit ${duration} 2 274 5802 region box near 2.0
 
 
 #        ---RUN--- 
