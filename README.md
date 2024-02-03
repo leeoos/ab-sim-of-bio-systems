@@ -8,3 +8,11 @@ The purpose of the project is to create an Agent-Based simulator for biological 
 The Agent-Based modeling provides an intuitive view of the system, where each species is considered as an autonomous agent independent of other agents until they come into direct contact. The contacts between agents are the central point of the simulation, as they conceptually represent reactions between species and enable the system itself to change. The independence of individual agents, especially regarding movement within the simulation environment, allows the introduction of a level of controlled and reproducible randomness, adding realism to the simulations and making them relevant for observing the progression of a system defined by certain rules and initial conditions.
 
 This mechanism allows for the verification or refutation of hypotheses about the final state of the system, formulated solely based on the definition of an initial state, without considering all possible intermediate states.
+---
+
+## How to run
+To test the code run...
+```code
+python main.py
+```
+... which is contained inside the *prj* directory, and just follow the instruction.
